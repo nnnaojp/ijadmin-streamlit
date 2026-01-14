@@ -1,9 +1,9 @@
 import streamlit as st
-from views import server_config, raid_config, update, log, reboot, server_info, log_search
+from views import server_config, raid_config, update, log, reboot, server_info, log_search, datetime_view, pagemem_config
 from pathlib import Path
 from utils.system_api import get_ip_address
 
-VERSION="0.1.0"
+VERSION="0.0.1"
 st.set_page_config(page_title="FXIJコンフィグツール", layout="wide")
 
 # Custom CSS to make disabled text areas look like normal text
@@ -45,7 +45,8 @@ st.sidebar.write(f"IPアドレス： {get_ip_address()}")
 st.sidebar.title("Menu")
 
 page = st.sidebar.radio(
-    "Go to", ["サーバー情報", "サーバー設定", "RAID設定", "アップデート", "ログ取得", "ログ検索", "再起動"]
+    "Go to", ["サーバー情報", "サーバー設定", "サーバー時刻設定", "SSD RAID設定", 
+    "ログ取得", "ログ検索", "ページメモリ設定", "ソフトウェアアップデート",  "再起動/シャットダウン"]
 )
 
 # Spacer to push content to bottom
@@ -63,13 +64,17 @@ if page == "サーバー情報":
     server_info.show()
 elif page == "サーバー設定":
     server_config.show()
-elif page == "RAID設定":
+elif page == "サーバー時刻設定":
+    datetime_view.show()
+elif page == "SSD RAID設定":
     raid_config.show()
-elif page == "アップデート":
-    update.show()
 elif page == "ログ取得":
     log.show()
 elif page == "ログ検索":
     log_search.show()
-elif page == "再起動":
+elif page == "ページメモリ設定":
+    pagemem_config.show()
+elif page == "ソフトウェアアップデート":
+    update.show()
+elif page == "再起動/シャットダウン":
     reboot.show()

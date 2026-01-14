@@ -19,4 +19,4 @@ def show():
             
         with st.spinner("検索中..."):
             result = search_system_logs(query, password)
-            st.code(result)
+            st.text_area("検索結果", result, height=600)

@@ -41,7 +41,7 @@ def render_help():
     if logo_path.exists():
         st.sidebar.image(str(logo_path))
 
-    st.sidebar.title("FXIJコンフィグツール")
+    # st.sidebar.title("FXIJコンフィグツール")
     # st.sidebar.write("Version 0.01.00")
     st.sidebar.write(f"IPアドレス： {get_ip_address()}")
 
