@@ -1,0 +1,28 @@
+[server]
+headless = true
+port = 8501
+address = "0.0.0.0"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showSidebarNavigation = false
+
+[theme]
+base="dark"
+
+# 選択状態やボタンなどのアクセント（画像の青）
+primaryColor="#0B63D1"
+
+# 全体の背景（濃いグレー）
+backgroundColor="#2E2F33"
+
+# サイドバー/カード/入力欄などの背景（少し明るいグレー）
+secondaryBackgroundColor="#3B3D43"
+
+# 文字色（白〜やや青み白）
+textColor="#E8EEF6"
+
+# フォント（業務UIっぽく）
+font="sans serif"
