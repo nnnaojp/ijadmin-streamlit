@@ -81,3 +81,86 @@ def search_system_logs(query, password):
             return f"Error executing grep:\n{result.stderr}"
     except Exception as e:
         return f"An error occurred: {str(e)}"
+
+
+def get_cpu_info():
+    """Retrieves CPU information using lscpu."""
+    result = run_command(["lscpu"])
+    if isinstance(result, str):
+        return "Unknown"
+    
+    if result.returncode == 0:
+        return result.stdout
+    return "Unknown"
+
+
+def get_memory_info():
+    """Retrieves memory information using free -h and formats it."""
+    result = run_command(["free", "-h"])
+    if isinstance(result, str):
+        return "Unknown"
+    
+    if result.returncode == 0:
+        lines = result.stdout.strip().split('\n')
+        if len(lines) < 2:
+            return result.stdout
+
+        # Parse headers
+        raw_headers = lines[0].split()
+        headers = ["Type"] + raw_headers
+        
+        rows = []
+        # Parse data lines
+        for line in lines[1:]:
+            parts = line.split()
+            rows.append(parts)
+        
+        # Calculate column widths
+        max_cols = len(headers)
+        col_widths = [0] * max_cols
+        
+        # Update widths based on headers
+        for i, h in enumerate(headers):
+            col_widths[i] = max(col_widths[i], len(h))
+            
+        # Update widths based on data
+        for row in rows:
+            for i, val in enumerate(row):
+                if i < max_cols:
+                    col_widths[i] = max(col_widths[i], len(val))
+        
+        # Build formatted string
+        output = []
+        
+        def format_row(row_data):
+            parts = []
+            for i in range(max_cols):
+                val = row_data[i] if i < len(row_data) else ""
+                width = col_widths[i]
+                if i == 0:
+                    # First column left aligned
+                    parts.append(f"{val:<{width}}")
+                else:
+                    # Others right aligned
+                    parts.append(f"{val:>{width}}")
+            return "  ".join(parts)
+        
+        output.append(format_row(headers))
+        for row in rows:
+            output.append(format_row(row))
+            
+        return "\n".join(output)
+
+    return "Unknown"
+
+
+def get_disk_info():
+    """Retrieves disk information using lsblk."""
+    result = run_command(["lsblk", "-e", "7,11", "-o", "NAME,TYPE,SIZE,MOUNTPOINT"])
+    if isinstance(result, str):
+        return "Unknown"
+    
+    if result.returncode == 0:
+        return result.stdout
+    return "Unknown"
+
