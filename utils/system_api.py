@@ -84,8 +84,9 @@ def search_system_logs(query, password):
 
 
 def get_cpu_info():
-    """Retrieves CPU information using lscpu."""
-    result = run_command(["lscpu"])
+    """Retrieves CPU information using lscpu with filtering."""
+    cmd = "LC_ALL=C lscpu | egrep 'Model name|Socket\(s\)|Core\(s\) per socket|Thread\(s\) per core|CPU\(s\)'"
+    result = run_command(["sh", "-c", cmd])
     if isinstance(result, str):
         return "Unknown"
     
