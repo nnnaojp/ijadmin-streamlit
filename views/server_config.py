@@ -36,14 +36,50 @@ def show():
         ip2 = st.text_input("サーバー２のIPアドレス", value="192.168.151.101")
         ip4 = st.text_input("サーバー４のIPアドレス", value="192.168.151.103")
 
-    # Save Button
-    if st.button("設定を保存"):
-        config_data = {
-            "head_config": head_config,
-            "print_direction": print_direction,
-            "ips": [ip1, ip2, ip3, ip4]
-        }
-        if save_config(config_data):
-            st.success(f"設定を保存しました (ヘッド構成: {head_config})")
+    # Buttons
+    if "confirm_update" not in st.session_state:
+        st.session_state.confirm_update = False
+
+    # Check for update result message from previous run
+    if "update_msg" in st.session_state:
+        msg_type, msg_text = st.session_state.update_msg
+        if msg_type == "success":
+            st.success(msg_text)
         else:
-            st.error("設定の保存に失敗しました")
+            st.error(msg_text)
+        del st.session_state.update_msg
+
+    if st.button("設定を更新"):
+        st.session_state.confirm_update = True
+
+    if st.session_state.confirm_update:
+        st.warning("設定を更新しますか？")
+        col_yes, col_no = st.columns(2)
+        with col_yes:
+            if st.button("はい"):
+                config_data = {
+                    "head_config": head_config,
+                    "print_direction": print_direction,
+                    "ips": [ip1, ip2, ip3, ip4]
+                }
+                if save_config(config_data):
+                    st.session_state.update_msg = ("success", f"設定を更新しました (ヘッド構成: {head_config})")
+                else:
+                    st.session_state.update_msg = ("error", "設定の更新に失敗しました")
+                st.session_state.confirm_update = False
+                st.rerun()
+        with col_no:
+            if st.button("いいえ"):
+                st.session_state.confirm_update = False
+                st.rerun()
+
+    if "show_import_uploader" not in st.session_state:
+        st.session_state.show_import_uploader = False
+
+    if st.button("設定をインポート"):
+        st.session_state.show_import_uploader = not st.session_state.show_import_uploader
+
+    if st.session_state.show_import_uploader:
+        uploaded_file = st.file_uploader("設定ファイル(tgz)を選択してください", type="tgz")
+        if uploaded_file is not None:
+            st.success(f"ファイル {uploaded_file.name} がアップロードされました (処理は未実装)")
