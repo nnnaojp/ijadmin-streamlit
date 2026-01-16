@@ -71,3 +71,19 @@ def load_config():
         
     except Exception as e:
         return f"Error loading config: {str(e)}"
+
+def get_sudo_password():
+    """Reads sudo password from .streamlit/config.toml"""
+    import toml
+    try:
+        config_path = ".streamlit/config.toml"
+        if not os.path.exists(config_path):
+            # Fallback for dev environment or if running from different cwd
+            config_path = os.path.join(os.path.dirname(__file__), "../.streamlit/config.toml")
+        
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = toml.load(f)
+            return data.get("system", {}).get("sudo_password", "")
+    except Exception as e:
+        print(f"Error reading sudo password: {e}")
+        return ""

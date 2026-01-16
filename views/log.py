@@ -2,6 +2,7 @@ import streamlit as st
 import subprocess
 import os
 import time
+from utils.config_manager import get_sudo_password
 
 def show():
     st.title("ログ取得")
@@ -10,16 +11,16 @@ def show():
     # Options
     option = st.radio("対象を選択", ["すべてのログファイル", "最新のログファイル"])
     
-    # Sudo Password Input
-    password = st.text_input("sudoパスワード", value="ijadmin", type="password", help="ルート権限でアーカイブを作成するために必要です。")
+    # Sudo Password Input (Removed)
     
     # State to hold the generated file path
     if "generated_zip" not in st.session_state:
         st.session_state.generated_zip = None
 
     if st.button("アーカイブ作成"):
+        password = get_sudo_password()
         if not password:
-            st.error("パスワードを入力してください。")
+            st.error("設定ファイル(config.toml)にsudoパスワードが設定されていません。")
             return
 
         st.session_state.generated_zip = None # Reset previous

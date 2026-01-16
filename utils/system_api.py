@@ -12,10 +12,39 @@ def run_command(command, encoding="utf-8"):
         return str(e)
 
 
+from utils.config_manager import get_sudo_password
+
+def execute_sudo_command(command_args):
+    """Executes a command with sudo using the configured password."""
+    password = get_sudo_password()
+    if not password:
+        return "Error: sudo password not configured in config.toml"
+
+    # Prepend sudo -S to the command
+    sudo_cmd = ["sudo", "-S"] + command_args
+    
+    try:
+        result = subprocess.run(
+            sudo_cmd,
+            input=password + "\n",
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.returncode == 0:
+            return "Success"
+        else:
+            return f"Error: {result.stderr}"
+    except Exception as e:
+        return f"Exception: {str(e)}"
+
 def reboot_system():
-    """Reboots the system (placeholder for demo)."""
-    # subprocess.run(["shutdown", "/r", "/t", "0"])
-    return "Reboot command executed (Demo)"
+    """Reboots the system."""
+    return execute_sudo_command(["shutdown", "-r", "now"])
+
+def shutdown_system():
+    """Shuts down the system."""
+    return execute_sudo_command(["shutdown", "-h", "now"])
 
 
 def get_ip_address():

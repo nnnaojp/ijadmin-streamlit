@@ -2,6 +2,7 @@ import streamlit as st
 import subprocess
 import time
 from streamlit_javascript import st_javascript
+from utils.config_manager import get_sudo_password
 
 def show():
     st.title("サーバー時刻設定")
@@ -9,8 +10,6 @@ def show():
 
     if "dt_view_key" not in st.session_state:
         st.session_state.dt_view_key = 0
-
-
 
     # JavaScript to get client time in YYYY-MM-DD HH:MM:SS format
     js_code = """(function() {
@@ -55,36 +54,49 @@ def show():
 
     st.markdown("---")
     
-    st.subheader("時刻同期")
-    st.write("「ブラウザの日時」を「サーバー」に設定します。")
+    # st.subheader("時刻同期")
+    # st.write("「ブラウザの日時」を「サーバー」に設定します。")
     
-    with st.form("time_sync_form"):
-        password = st.text_input("sudoパスワード", type="password")
-        submit = st.form_submit_button("更新")
-    
-    if submit:
+    if "processing_time_update" not in st.session_state:
+        st.session_state.processing_time_update = False
+
+    if st.button("サーバー時刻更新", key="btn_sync_time"):
+        # Trigger update process: Force refresh client time first
+        st.session_state.processing_time_update = True
+        st.session_state.dt_view_key += 1
+        st.rerun()
+
+    if st.session_state.processing_time_update:
         if not client_time_str or client_time_str == 0:
-            st.error("ブラウザの日時が正しく取得できていません。ページを再読み込みしてください。")
-        elif not password:
-            st.error("パスワードを入力してください。")
+            # Waiting for st_javascript to return fresh value (triggers rerun automatically)
+            st.info("最新の時刻を取得中...")
         else:
-            try:
-                # Update server time using date -s "YYYY-MM-DD HH:MM:SS"
-                cmd = ["sudo", "-S", "date", "-s", client_time_str]
-                
-                res = subprocess.run(
-                    cmd, 
-                    input=password + "\n", 
-                    capture_output=True, 
-                    text=True, 
-                    check=False
-                )
-                
-                if res.returncode == 0:
-                    st.success("サーバーの日時を更新しました。")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error(f"更新に失敗しました:\n{res.stderr}")
-            except Exception as e:
-                st.error(f"実行エラー: {e}")
+            # We have fresh time, proceed with update
+            password = get_sudo_password()
+            if not password:
+                st.error("設定ファイル(config.toml)にsudoパスワードが設定されていません。")
+                st.session_state.processing_time_update = False
+            else:
+                try:
+                    # Update server time using date -s "YYYY-MM-DD HH:MM:SS"
+                    cmd = ["sudo", "-S", "date", "-s", client_time_str]
+                    
+                    res = subprocess.run(
+                        cmd, 
+                        input=password + "\n", 
+                        capture_output=True, 
+                        text=True, 
+                        check=False
+                    )
+                    
+                    if res.returncode == 0:
+                        st.success(f"サーバーの日時を更新しました ({client_time_str})")
+                        st.session_state.processing_time_update = False
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error(f"更新に失敗しました:\n{res.stderr}")
+                        st.session_state.processing_time_update = False
+                except Exception as e:
+                    st.error(f"実行エラー: {e}")
+                    st.session_state.processing_time_update = False
