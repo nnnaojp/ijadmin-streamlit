@@ -4,6 +4,7 @@ from utils.config_manager import save_config, load_config
 
 @st.dialog("設定更新の確認")
 def confirm_update_dialog(config_data, head_config_label):
+    st.write(config_data, head_config_label)
     st.write("設定を更新しますか？")
     col_yes, col_no = st.columns(2)
     with col_yes:
