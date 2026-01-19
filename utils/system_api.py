@@ -254,6 +254,25 @@ def get_memory_info():
     return "Unknown"
 
 
+def get_server_total_memory_gb():
+    """Returns total server memory in GB."""
+    # Use free -g or parse /proc/meminfo
+    try:
+        # free -g | awk '/^Mem:/{print $2}'
+        result = run_command(["free", "-g"])
+        if result.returncode == 0:
+            lines = result.stdout.strip().split('\n')
+            if len(lines) >= 2:
+                # Header: total used free ...
+                # Mem:    123   ...
+                parts = lines[1].split()
+                if len(parts) >= 2:
+                    return float(parts[1])
+    except Exception:
+        pass
+    return 0.0
+
+
 def get_disk_info():
     """Retrieves disk information using lsblk."""
     result = run_command(["lsblk", "-e", "7,11", "-o", "NAME,TYPE,SIZE,MOUNTPOINT"])

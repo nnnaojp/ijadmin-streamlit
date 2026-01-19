@@ -5,10 +5,10 @@ import config_gens.dcm_json as dcm_json
 import config_gens.tiff2lb_json as tiff2lb_json
 import config_gens.fxijconfig as fxijconfig
 
-def save_config(config_data):
+def save_config(config_data, config_index):
     """Saves configuration data (placeholder)."""
     # In a real app, this would write to a file or database
-    configFunc = [
+    generator = [
         fxijconfig.setup1_Type500_RC1536_40mpm,
         fxijconfig.setup2_Type500_RC1536x2_40mpm,
         fxijconfig.setup3_Type500_SambaG5Lx2_40mpm,
@@ -17,21 +17,51 @@ def save_config(config_data):
         fxijconfig.setup6_Type1000_SambaG5Lx2_30mpm,
         fxijconfig.setup7_Type1000_SambaG5Lx2_50mpm,
     ]
-    user = 'ijadmin'
-    passwd = 'ijadmin'
+    mc = mistral_json.MistralConfig()
+    dc = dcm_json.DcmConfig()
+    tc = tiff2lb_json.Tiff2lb()
+    generator[config_index](mc,dc,tc,config_data['ips'])
+    
+    # Needs subprocess to run sudo cp
+    import subprocess
+    
+    password = get_sudo_password()
+    if not password:
+        # If no password, we can't sudo. In a real scenario this might raise error or return False.
+        # For now, we return False to indicate failure in 'setting update'.
+        print("Error: No sudo password available for file copy.")
+        return False
+
+    def copy_file(src, dest):
+        command = ["sudo", "-S", "cp", src, dest]
+        try:
+            result = subprocess.run(
+                command,
+                input=password + "\n",
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            if result.returncode != 0:
+                print(f"Error copying {src} to {dest}: {result.stderr}")
+                return False
+            return True
+        except Exception as e:
+            print(f"Exception copying {src} to {dest}: {e}")
+            return False
+
+    # Copy files
     tmpdir = '/tmp/'
     confdir = '/usr/mistral/conf'
     etcdir = '/usr/mistral/etc'
-    cfgfile = ['mistral.json','dcm.json']
-    etcfile = ['tiff2lb.json']
-    # mc = mistral_json.MistralConfig()
-    # dc = dcm_json.DcmConfig()
-    # tc = tiff2lb_json.Tiff2lb()
-    # svrlst = [myapp.serverSet.svrlist[i].address
-    #               for i in range(myapp.serverSet.numServers)]
-    # configFunc[myapp.serverSet.systemId-1](mc,dc,tc,svrlst)
 
-    
+    # mistral.json -> /usr/mistral/conf
+    if not copy_file(os.path.join(tmpdir, 'mistral.json'), confdir): return False
+    # dcm.json -> /usr/mistral/conf
+    if not copy_file(os.path.join(tmpdir, 'dcm.json'), confdir): return False
+    # tiff2lb.json -> /usr/mistral/etc
+    if not copy_file(os.path.join(tmpdir, 'tiff2lb.json'), etcdir): return False
+
     return True
 
 
@@ -113,5 +143,24 @@ def get_sudo_password():
             data = toml.load(f)
             return data.get("system", {}).get("sudo_password", "")
     except Exception as e:
-        print(f"Error reading sudo password: {e}")
+        return f"Error reading sudo password: {e}"
         return ""
+
+def get_mistral_cma_size():
+    """Returns Mistral page memory size in GB from /etc/default/grub (cma=XXG)."""
+    import re
+    try:
+        with open("/etc/default/grub", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("#"):
+                    continue
+                
+                match = re.search(r'cma=([0-9]+)[Gg]', line)
+                if match:
+                    return float(match.group(1))
+            
+    except Exception as e:
+        print(f"Error reading /etc/default/grub: {e}")
+        
+    return 0.0

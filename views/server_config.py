@@ -3,14 +3,14 @@ from utils.config_manager import save_config, load_config
 
 
 @st.dialog("設定更新の確認")
-def confirm_update_dialog(config_data, head_config_label):
-    st.write(config_data, head_config_label)
+def confirm_update_dialog(config_data, head_config_index):
+    # st.write(config_data, head_config_index)
     st.write("設定を更新しますか？")
     col_yes, col_no = st.columns(2)
     with col_yes:
         if st.button("はい"):
-            if save_config(config_data):
-                st.session_state.update_msg = ("success", f"設定を更新しました (ヘッド構成: {head_config_label})")
+            if save_config(config_data,head_config_index):
+                st.session_state.update_msg = ("success", f"設定を更新しました (ヘッド構成: {config_data['head_config']})")
             else:
                 st.session_state.update_msg = ("error", "設定の更新に失敗しました")
             st.rerun()
@@ -29,16 +29,24 @@ def show():
     st.code(str(current_config), language=None)
 
     # Head Configuration
+    # Head Configuration
     st.subheader("ヘッド構成")
-    head_config = st.selectbox("ヘッド構成", 
-        ["[1] FXIJ type 500 (W:RC1536,40mpm)",
-         "[2] FXIJ type 500 (W:RC1536x2,40mpm)",
-         "[3] FXIJ type 1000 (W:RC1536,40mpm)",
-         "[4] FXIJ type 1000 (W:RC1536,40mpm)",
-         "[5] FXIJ type 1000 (W:RC1536,40mpm)",
-         "[6] FXIJ type 1000 (W:RC1536,40mpm)",
-         "[7] FXIJ type 1000 (W:RC1536,40mpm)",
-         ], index=0)
+    options = [
+        "[1] FXIJ type 500 (W:RC1536,40mpm)",
+        "[2] FXIJ type 500 (W:RC1536x2,40mpm)",
+        "[3] FXIJ type 500 (W:SambaG5Lx2,40mpm)",
+        "[4] FXIJ type 1000 (W:RC1536,40mpm)",
+        "[5] FXIJ type 1000 (W:RC1536x2,40mpm)",
+        "[6] FXIJ type 1000 (W:SambaG5Lx2,30mpm)",
+        "[7] FXIJ type 1000 (W:SambaG5Lx2,50mpm)",
+    ]
+    head_config = st.selectbox("ヘッド構成", options, index=0)
+    
+    # Capture the selected index in a variable as requested
+    try:
+        head_config_index = options.index(head_config)
+    except ValueError:
+        head_config_index = 0
 
     # Print Direction
     print_direction = st.radio("ヘッド印刷向き", ["正方向", "逆方向"])
@@ -69,7 +77,7 @@ def show():
             "print_direction": print_direction,
             "ips": [ip1, ip2, ip3, ip4]
         }
-        confirm_update_dialog(config_data, head_config)
+        confirm_update_dialog(config_data, head_config_index)
 
     if "show_import_uploader" not in st.session_state:
         st.session_state.show_import_uploader = False

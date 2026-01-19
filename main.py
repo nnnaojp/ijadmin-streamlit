@@ -46,7 +46,7 @@ st.sidebar.title("Menu")
 
 page = st.sidebar.radio(
     "Go to", ["サーバー情報", "サーバー設定", "サーバー時刻設定", "SSD RAID設定", 
-    "ログ取得", "ログ検索", "ページメモリ設定", "ソフトウェアアップデート",  "再起動/シャットダウン"]
+    "ログ取得", "ログ検索", "印刷ページメモリ調整", "ソフトウェアアップデート",  "再起動/シャットダウン"]
 )
 
 # Spacer to push content to bottom
@@ -72,7 +72,7 @@ elif page == "ログ取得":
     log.show()
 elif page == "ログ検索":
     log_search.show()
-elif page == "ページメモリ設定":
+elif page == "印刷ページメモリ調整":
     pagemem_config.show()
 elif page == "ソフトウェアアップデート":
     update.show()
