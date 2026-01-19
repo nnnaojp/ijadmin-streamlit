@@ -3,15 +3,11 @@ import subprocess
 import os
 import time
 from utils.config_manager import get_sudo_password
+from utils.system_api import get_ip_address
 
 def show():
     st.title("ログ取得")
     st.write("ログファイルをダウンロードします。")
-
-    # Options
-    option = st.radio("対象を選択", ["すべてのログファイル", "最新のログファイル"])
-    
-    # Sudo Password Input (Removed)
     
     # State to hold the generated file path
     if "generated_zip" not in st.session_state:
@@ -25,20 +21,21 @@ def show():
 
         st.session_state.generated_zip = None # Reset previous
         
-        target_path = ""
-        output_zip = ""
+        target_path = "/var/mistral/log"
         
-        if option == "すべてのログファイル":
-            target_path = "/var/mistral/log"
-            output_zip = "/tmp/mistlog_all.zip"
-            # zip -r for directory
-            cmd = ["sudo", "-S", "zip", "-r", output_zip, target_path]
-        else:
-            # Latest log (assuming active file)
-            target_path = "/var/mistral/log/mistlog.log"
-            output_zip = "/tmp/mistlog_latest.zip"
-            # zip for single file
-            cmd = ["sudo", "-S", "zip", "-j", output_zip, target_path] # -j to verify path structure? just zip it.
+        # Determine output filename based on IP
+        ip_addr = get_ip_address()
+        # Clean up IP string if needed or fallback
+        if not ip_addr or "Unknown" in ip_addr:
+             ip_addr = "server"
+        
+        output_zip = f"/tmp/mistlog-{ip_addr}.zip"
+        
+        # zip specific files matching /var/mistral/log/mistlog*
+        # We need to construct the command carefully for shell glob expansion
+        # Using `sh -c` to allow globbing of the input files
+        zip_command_str = f"zip -j {output_zip} /var/mistral/log/mistlog*"
+        cmd = ["sudo", "-S", "sh", "-c", zip_command_str]
 
         try:
             # Execute sudo command
