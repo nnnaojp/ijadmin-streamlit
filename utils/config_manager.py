@@ -158,9 +158,25 @@ def get_mistral_cma_size():
                 
                 match = re.search(r'cma=([0-9]+)[Gg]', line)
                 if match:
-                    return float(match.group(1))
+                    return int(match.group(1))
             
     except Exception as e:
         print(f"Error reading /etc/default/grub: {e}")
         
-    return 0.0
+    return 0
+
+def update_mistral_cma_config(server_mem_gb):
+    """Updates cma=XXXG in /etc/default/grub based on server memory."""
+    from utils.system_api import execute_sudo_command
+    
+    target_cma = 9 if server_mem_gb <= 16 else 20
+    
+    # Use sed to replace cma=...G with target_cma
+    # We target lines starting with GRUB_CMDLINE_LINUX (allowing for whitespace), ignoring comments
+    # Regex: 's/cma=[0-9]\+[Gg]/cma={target_cma}G/'
+    
+    sed_expr = f"/^\\s*GRUB_CMDLINE_LINUX/ s/cma=[0-9]\\+[Gg]/cma={target_cma}G/"
+    
+    command = ["sed", "-i", sed_expr, "/etc/default/grub"]
+    
+    return execute_sudo_command(command)

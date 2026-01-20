@@ -267,19 +267,80 @@ def get_server_total_memory_gb():
                 # Mem:    123   ...
                 parts = lines[1].split()
                 if len(parts) >= 2:
-                    return float(parts[1])
+                    return int(parts[1])
     except Exception:
         pass
-    return 0.0
+    return 0
 
 
-def get_disk_info():
+def get_disk_info(exclude_patterns=None):
     """Retrieves disk information using lsblk."""
     result = run_command(["lsblk", "-e", "7,11", "-o", "NAME,TYPE,SIZE,MOUNTPOINT"])
     if isinstance(result, str):
         return "Unknown"
     
     if result.returncode == 0:
-        return result.stdout
+        if not exclude_patterns:
+            return result.stdout
+            
+        lines = result.stdout.splitlines()
+        filtered_lines = []
+        if lines:
+            filtered_lines.append(lines[0]) # Header
+            
+        for line in lines[1:]:
+            # Filter out lines containing any of the exclude patterns
+            if not any(pat in line for pat in exclude_patterns):
+                filtered_lines.append(line)
+        
+        return "\n".join(filtered_lines)
     return "Unknown"
 
+
+def init_raid_sequence():
+    """Executes the RAID initialization sequence."""
+    commands = [
+        ["mdadm", "--stop", "/dev/md127"],
+        ["mdadm", "--stop", "/dev/md126"],
+        ["mdadm", "--zero-superblock", "/dev/sdb1"],
+        ["mdadm", "--zero-superblock", "/dev/sdc1"],
+        ["mdadm", "--zero-superblock", "/dev/sdd1"],
+        ["mdadm", "-C", "/dev/md127", "-l", "0", "-n", "3", "/dev/sdb1", "/dev/sdc1", "/dev/sdd1"],
+        
+        # mkfs.ext4 /dev/md127
+        # -F to force if needed? User didn't specify. Assuming clean.
+        ["mkfs.ext4", "/dev/md127"],
+        
+        ["mount", "-o", "rw,remount", "/boot"],
+        ["update-initramfs", "-u"],
+        ["mount", "/dev/md127", "/mnt/ssd1"]
+    ]
+    
+    results = []
+    
+    for cmd in commands:
+        # Special handling for potentially non-critical commands?
+        # mdadm --stop might fail if not running, that's fine.
+        # zero-superblock might fail, fine.
+        
+        # We'll execute and log output.
+        # We iterate and return the first failure? Or try to continue?
+        # Usually RAID init should abort if Creation fails.
+        
+        res = execute_sudo_command(cmd)
+        
+        # If mdadm --stop fails, it might just be "not found", which is OK.
+        # If initramfs fails, that's bad.
+        
+        cmd_str = " ".join(cmd)
+        if res != "Success":
+            # Allow some failures?
+            if "mdadm --stop" in cmd_str or "zero-superblock" in cmd_str:
+                results.append(f"Warning: {cmd_str} -> {res}")
+            else:
+                results.append(f"Error: {cmd_str} -> {res}")
+                return "\n".join(results) # Abort on error for critical steps
+        else:
+            results.append(f"Success: {cmd_str}")
+            
+    return "Success"
