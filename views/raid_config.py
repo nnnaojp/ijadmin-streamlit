@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.system_api import get_disk_info, init_raid_sequence
+from utils.system_api import get_disk_info, init_raid_sequence, unmount_raid_volume
 
 def show():
     st.title("RAID設定")
@@ -8,6 +8,17 @@ def show():
     st.subheader("RAIDディスク")
     disk_info_placeholder = st.empty()
     disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+
+    st.write("") # Spacer
+    
+    if st.button("マウント解除"):
+        result = unmount_raid_volume()
+        if result == "Success":
+            st.success("マウントを解除しました。")
+            # Refresh disk info
+            disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+        else:
+            st.error(f"マウント解除に失敗しました:\n{result}")
 
     st.write("") # Spacer
     if st.button("RAID初期化"):

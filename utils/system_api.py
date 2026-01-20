@@ -344,3 +344,11 @@ def init_raid_sequence():
             results.append(f"Success: {cmd_str}")
             
     return "Success"
+
+def unmount_raid_volume():
+    """Unmounts RAID volumes /dev/md127 and /dev/md126. Ignores errors."""
+    # Try to unmount both
+    execute_sudo_command(["umount", "/dev/md127"])
+    execute_sudo_command(["umount", "/dev/md126"])
+    # Always return success as requested
+    return "Success"
