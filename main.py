@@ -1,7 +1,7 @@
 import streamlit as st
 from views import server_config, raid_config, update, log, reboot, server_info, log_search, datetime_view, pagemem_config
 from pathlib import Path
-from utils.system_api import get_ip_address
+from utils.system_api import get_ip_address, write_syslog
 
 VERSION="0.0.1"
 st.set_page_config(page_title="FXIJコンフィグツール", layout="wide")

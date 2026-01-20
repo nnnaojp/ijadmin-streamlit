@@ -352,3 +352,20 @@ def unmount_raid_volume():
     execute_sudo_command(["umount", "/dev/md126"])
     # Always return success as requested
     return "Success"
+
+# Global flag to track syslog initialization
+_syslog_initialized = False
+
+def write_syslog(message, priority=None):
+    """Writes a message to syslog."""
+    import syslog
+    global _syslog_initialized
+    
+    if not _syslog_initialized:
+        print("syslog initialized")
+        syslog.openlog(ident="ijadmin-ui", logoption=syslog.LOG_PID, facility=syslog.LOG_LOCAL0)
+        _syslog_initialized = True
+        
+    if priority is None:
+        priority = syslog.LOG_INFO
+    syslog.syslog(priority, message)
