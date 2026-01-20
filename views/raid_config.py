@@ -25,24 +25,40 @@ def show():
             
             # Placeholder for error messages (full width)
             msg_container = st.empty()
+            
+            # Current processing state
+            is_processing = st.session_state.get("raid_initializing", False)
 
             with col1:
-                if st.button("実行", type="primary", key="raid_init_exec"):
-                    result = init_raid_sequence()
-                    if result == "Success":
-                        # Set success flag
-                        is_success = True
-                        
-                        # Refresh disk info
-                        disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
-                        st.session_state.show_raid_confirm = False
-                    else:
-                        msg_container.error(f"RAID初期化に失敗しました:\n{result}")
+                # Execution Button with state handling
+                def on_click_execute():
+                    st.session_state.raid_initializing = True
+                
+                # If processing, disable the button. Logic runs below.
+                if st.button("実行", type="primary", key="raid_init_exec", disabled=is_processing, on_click=on_click_execute):
+                    pass # Triggered by callback
+
             with col2:
-                if st.button("キャンセル"):
+                def on_click_cancel():
                     st.session_state.show_raid_confirm = False
-                    st.rerun()
-        
+                st.button("キャンセル", disabled=is_processing, on_click=on_click_cancel)
+            
+            # Logic Execution
+            if is_processing:
+                with st.spinner("RAID初期化を実行中..."):
+                    # Force a small sleep or yield if needed for UI update? Streamlit usually handles this.
+                    result = init_raid_sequence()
+                
+                st.session_state.raid_initializing = False
+                
+                if result == "Success":
+                    is_success = True
+                    # Update disk info
+                    disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+                    st.session_state.show_raid_confirm = False
+                else:
+                    msg_container.error(f"RAID初期化に失敗しました:\n{result}")
+
         # Clear container and show success message if successful
         if is_success:
             confirm_container.empty()
