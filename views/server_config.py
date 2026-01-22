@@ -1,9 +1,10 @@
 import streamlit as st
 from utils.config_manager import save_config, load_config
-
+from utils.system_api import write_syslog
 
 @st.dialog("設定更新の確認")
 def confirm_update_dialog(config_data, head_config_index):
+    write_syslog("xxx")
     # st.write(config_data, head_config_index)
     st.write("設定を更新しますか？")
     col_yes, col_no = st.columns(2)

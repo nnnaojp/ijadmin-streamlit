@@ -313,7 +313,7 @@ def init_raid_sequence():
         
         ["mount", "-o", "rw,remount", "/boot"],
         ["update-initramfs", "-u"],
-        ["mount", "/dev/md127", "/mnt/ssd1"]
+        # ["mount", "/dev/md127", "/mnt/ssd1"]
     ]
     
     results = []
@@ -352,6 +352,13 @@ def unmount_raid_volume():
     execute_sudo_command(["umount", "/dev/md126"])
     # Always return success as requested
     return "Success"
+    
+def mount_raid_volume():
+    """Mounts RAID volumes /dev/md127 to /mnt/ssd1."""
+    # Command: mount /dev/md127 /mnt/ssd1
+    # We should use execute_sudo_command because it likely requires root privileges
+    cmd = ["mount", "/dev/md127", "/mnt/ssd1"]
+    return execute_sudo_command(cmd)
 
 # Global flag to track syslog initialization
 _syslog_initialized = False
