@@ -1,6 +1,6 @@
 import streamlit as st
 from utils.config_manager import save_config, load_config
-from utils.system_api import write_syslog
+from utils.system_api import write_syslog, import_settings_package
 
 @st.dialog("設定更新の確認")
 def confirm_update_dialog(config_data, head_config_index):
@@ -89,4 +89,20 @@ def show():
     if st.session_state.show_import_uploader:
         uploaded_file = st.file_uploader("設定ファイル(tgz)を選択してください", type="tgz")
         if uploaded_file is not None:
-            st.success(f"ファイル {uploaded_file.name} がアップロードされました (処理は未実装)")
+             # Save to /tmp
+            import os
+            import tempfile
+            _, ext = os.path.splitext(uploaded_file.name)
+            with tempfile.NamedTemporaryFile(dir="/tmp", suffix=ext, prefix="upload_", delete=False) as tf:
+                tf.write(uploaded_file.getbuffer())
+                temp_path = tf.name
+
+            with st.spinner("設定をインポート中..."):
+                result = import_settings_package(temp_path)
+            
+            if result == "Success":
+                st.success("設定のインポートが完了しました。")
+                st.session_state.show_import_uploader = False
+                # Ideally refresh the page or config to show new values
+            else:
+                st.error(f"設定のインポートに失敗しました:\n{result}")

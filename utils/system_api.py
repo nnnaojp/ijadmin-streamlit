@@ -360,6 +360,82 @@ def mount_raid_volume():
     cmd = ["mount", "/dev/md127", "/mnt/ssd1"]
     return execute_sudo_command(cmd)
 
+def import_settings_package(tgz_path):
+    """
+    Imports settings from a tgz package.
+    1. Creates a temp dir in /tmp.
+    2. Extracts tgz there.
+    3. Runs sudo ./import.sh in that dir.
+    4. Cleans up temp dir and tgz file.
+    """
+    import os
+    import time
+    import shutil
+    
+    # Create unique work directory
+    timestamp = int(time.time())
+    work_dir = f"/tmp/import_settings_{timestamp}"
+    
+    try:
+        os.makedirs(work_dir, exist_ok=True)
+    except Exception as e:
+        return f"Error creating work directory: {str(e)}"
+        
+    try:
+        # Extract tgz
+        # tar -xzvf <tgz_path> -C <work_dir>
+        cmd_extract = ["tar", "-xzvf", tgz_path, "-C", work_dir]
+        res_extract = run_command(cmd_extract)
+        
+        if res_extract.returncode != 0:
+            # Cleanup and return error
+            shutil.rmtree(work_dir, ignore_errors=True)
+            return f"Error extracting tgz:\n{res_extract.stderr}"
+            
+        # Run import.sh
+        # Expected path: <work_dir>/import.sh
+        # import_script = os.path.join(work_dir, "/tmp/import.sh")
+        
+        # Check if script exists
+        # Since we might need sudo to see files if extraction preserved permissions that block us?
+        # But we extracted it, so we should own it or have read access usually.
+        # Let's just try running it via sudo.
+        
+        # We need to execute it inside the work_dir because the script might refer to relative files (conf/, etc/)
+        # execute_sudo_command doesn't natively support cwd change easily without chaining in shell.
+        # So we construct a shell command: cd <work_dir> && ./import.sh
+        
+        # However, execute_sudo_command uses subprocess with password input.
+        # We can pass the relative command but we need to ensure CWD.
+        # Let's modify execute_sudo_command or just wrap it here.
+        
+        # Actually, execute_sudo_command is simple. Let's send a customized command list.
+        # "sudo -S sh -c 'cd <dir> && ./import.sh'"
+        
+        cmd_import = ["sh", "-c", f"cd {work_dir} && chmod +x ./import.sh && ./import.sh"]
+        res_import = execute_sudo_command(cmd_import)
+        
+        return res_import
+        
+    except Exception as e:
+        return f"Exception during import: {str(e)}"
+    finally:
+        # Cleanup
+        # 1. Remove work_dir
+        # We might need sudo to remove if files inside were created by root?
+        # But we extracted them. If import.sh created root files inside, standard rm might fail.
+        # Safer to use sudo rm -rf
+        cleanup_cmd = ["rm", "-rf", work_dir]
+        execute_sudo_command(cleanup_cmd)
+        
+        # 2. Remove tgz_path
+        if os.path.exists(tgz_path):
+            try:
+                os.remove(tgz_path)
+            except:
+                # If failed (maybe owner issue), try sudo
+                execute_sudo_command(["rm", "-f", tgz_path])
+
 # Global flag to track syslog initialization
 _syslog_initialized = False
 
