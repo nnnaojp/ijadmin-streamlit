@@ -35,8 +35,6 @@ def show():
         st.info("ブラウザ (Client)")
         if client_time_str and client_time_str != 0:
             st.write(f"**{client_time_str}**")
-        else:
-            st.warning("時刻を取得中... (ロード完了までお待ちください)")
 
     # Get Server Time in same format
     server_time_str = "Unknown"
