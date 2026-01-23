@@ -4,6 +4,7 @@ import config_gens.mistral_json as mistral_json
 import config_gens.dcm_json as dcm_json
 import config_gens.tiff2lb_json as tiff2lb_json
 import config_gens.fxijconfig as fxijconfig
+import config_gens.dnc_json as dnc_json
 
 def save_config(config_data, config_index):
     """Saves configuration data (placeholder)."""
@@ -20,7 +21,8 @@ def save_config(config_data, config_index):
     mc = mistral_json.MistralConfig()
     dc = dcm_json.DcmConfig()
     tc = tiff2lb_json.Tiff2lb()
-    generator[config_index](mc,dc,tc,config_data['ips'])
+    dnc = dnc_json.MistralConfig()
+    generator[config_index](mc,dc,tc,dnc,config_data['ips'])
     
     # Needs subprocess to run sudo cp
     import subprocess

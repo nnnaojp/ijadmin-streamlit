@@ -6,10 +6,12 @@ def show():
     st.title("ログ検索")
     
     # Input fields
-    query = st.text_input("検索ワード", placeholder="検索したい文字列を入力してください")
-    # password = st.text_input("sudoパスワード", value="ijadmin", type="password", help="ログファイルの読み取りにルート権限が必要です。")
+    with st.form(key="search_form"):
+        query = st.text_input("検索ワード", placeholder="検索したい文字列を入力してください (スペース区切り: AND, |区切り: OR)")
+        # password = st.text_input("sudoパスワード", value="ijadmin", type="password", help="ログファイルの読み取りにルート権限が必要です。")
+        submitted = st.form_submit_button("検索")
     
-    if st.button("検索"):
+    if submitted:
         if not query:
             st.warning("検索ワードを入力してください。")
             return

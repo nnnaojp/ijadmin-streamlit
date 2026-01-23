@@ -1,8 +1,9 @@
 import config_gens.mistral_json as mistral_json
 import config_gens.dcm_json as dcm_json
 import config_gens.tiff2lb_json as tiff2lb_json
+import config_gens.dnc_json as dnc_json
 
-def setup1_Type500_RC1536_40mpm(mc, dc, tc, iparry):
+def setup1_Type500_RC1536_40mpm(mc, dc, tc, dnc, iparry):
     # setup mistral.json
     mc.setSystem(("SambaG3", 4), ("RC1536", 1), nserver=1)
     mc.setServer(
@@ -49,7 +50,7 @@ def setup1_Type500_RC1536_40mpm(mc, dc, tc, iparry):
     )
     tc.save()
 
-def setup2_Type500_RC1536x2_40mpm(mc, dc, tc, iparry):
+def setup2_Type500_RC1536x2_40mpm(mc, dc, tc, dnc, iparry):
     # setup mistral.json
     mc.setSystem(("SambaG3", 4), ("RC1536", 2), nserver=1)
     mc.setServer(
@@ -101,7 +102,7 @@ def setup2_Type500_RC1536x2_40mpm(mc, dc, tc, iparry):
     )
     tc.save()
 
-def setup3_Type500_SambaG5Lx2_40mpm(mc, dc, tc, iparry):
+def setup3_Type500_SambaG5Lx2_40mpm(mc, dc, tc, dnc, iparry):
     # setup mistral.json
     mc.setSystem(("SambaG3", 6), nserver=1)
     mc.setServer(
@@ -153,7 +154,7 @@ def setup3_Type500_SambaG5Lx2_40mpm(mc, dc, tc, iparry):
     )
     tc.save()
 
-def setup4_Type1000_RC1536_40mpm(mc, dc, tc, iparry):
+def setup4_Type1000_RC1536_40mpm(mc, dc, tc, dnc, iparry):
     # setup mistral.json
     mc.setSystem(("SambaG3", 4), ("RC1536", 1), nserver=2)
     mc.setServer(
@@ -212,7 +213,7 @@ def setup4_Type1000_RC1536_40mpm(mc, dc, tc, iparry):
     )
     tc.save()
 
-def setup5_Type1000_RC1536x2_40mpm(mc, dc, tc, iparry):
+def setup5_Type1000_RC1536x2_40mpm(mc, dc, tc, dnc, iparry):
     # setup mistral.json
     mc.setSystem(("SambaG3", 4), ("RC1536", 2), nserver=2)
     mc.setServer(
@@ -275,7 +276,7 @@ def setup5_Type1000_RC1536x2_40mpm(mc, dc, tc, iparry):
     )
     tc.save()
 
-def setup6_Type1000_SambaG5Lx2_30mpm(mc, dc, tc, iparry):
+def setup6_Type1000_SambaG5Lx2_30mpm(mc, dc, tc, dnc, iparry):
     # setup mistral.json
     mc.setSystem(("SambaG3", 6), nserver=2)
     mc.setServer(
@@ -343,7 +344,7 @@ def setup6_Type1000_SambaG5Lx2_30mpm(mc, dc, tc, iparry):
     )
     tc.save()
 
-def setup7_Type1000_SambaG5Lx2_50mpm(mc, dc, tc, iparry):
+def setup7_Type1000_SambaG5Lx2_50mpm(mc, dc, tc, dnc, iparry):
     # setup mistral.json
     mc.setSystem(("SambaG3", 6), nserver=3)
     mc.setServer(
@@ -417,8 +418,9 @@ if __name__ == '__main__':
     mc = mistral_json.MistralConfig()
     dc = dcm_json.DcmConfig()
     tc = tiff2lb_json.Tiff2lb()
+    dnc = dnc_json.MistralConfig()
     # setup1_Type500_RC1536_40mpm(mc, dc, tc, ('10.20.14.106'))
-    setup2_Type500_RC1536x2_40mpm(mc, dc, tc, ('10.20.14.106'))
+    setup2_Type500_RC1536x2_40mpm(mc, dc, tc, dnc, ('10.20.14.106'))
     # setup3_Type500_SambaG5Lx2_40mpm(mc, dc, tc, ('10.20.14.106'))
     #setup4_Type1000_RC1536_40mpm(mc, dc, tc, ('10.20.14.106', '10.20.14.105'))
     # setup5_Type1000_RC1536x2_40mpm(mc, dc, tc,('10.20.14.106', '10.20.14.105'))

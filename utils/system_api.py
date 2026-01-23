@@ -152,17 +152,51 @@ def get_hif_versions():
     return all_versions
 
 
+import shlex
+
 def search_system_logs(query, password):
-    """Searches system logs usinggrep with sudo."""
+    """Searches system logs using grep with sudo. Supports AND (space) and OR (|) search."""
     if not query:
         return "Search query cannot be empty."
     
-    # -S reads password from stdin
-    # -r recursive
-    # -n line number
-    # -I ignore binary files
-    command = ["sudo", "-S", "grep", "-I", query, "/var/mistral/log/mistlog.log"]
+    log_file = "/var/mistral/log/mistlog.log"
     
+    # Determine search mode
+    if "|" in query:
+        # OR Search
+        parts = [p.strip() for p in query.split("|") if p.strip()]
+        if not parts:
+            return "Invalid query."
+        regex = "|".join(parts)
+        # grep -E for extended regex (OR)
+        command = ["sudo", "-S", "grep", "-I", "-E", regex, log_file]
+    else:
+        # AND Search (space separated)
+        parts = query.split()
+        if not parts:
+            return "Invalid query."
+            
+        if len(parts) == 1:
+            # Simple single word search
+            command = ["sudo", "-S", "grep", "-I", parts[0], log_file]
+        else:
+            # Multiple words: chain grep commands
+            # grep -I "A" file | grep -I "B" | ...
+            # We need to construct a shell command string
+            
+            # Quote parts for safety
+            quoted_parts = [shlex.quote(p) for p in parts]
+            
+            # First grep reads the file
+            shell_cmd = f"grep -I {quoted_parts[0]} {log_file}"
+            
+            # Subsequent greps filter the output
+            for p in quoted_parts[1:]:
+                shell_cmd += f" | grep -I {p}"
+                
+            # Execute via sudo sh -c
+            command = ["sudo", "-S", "sh", "-c", shell_cmd]
+
     try:
         result = subprocess.run(
             command,
