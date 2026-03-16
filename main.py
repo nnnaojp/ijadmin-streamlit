@@ -31,6 +31,10 @@ st.markdown(
         display: flex;
         flex-direction: column;
     }
+
+    /* st.title() は h1、st.subheader() は h2 になることが多い */
+    h1 { font-size: 2.0rem; }  /* ここを好みで微調整 */
+    h2 { font-size: 1.5rem; }  /* ここを好みで微調整 */
     </style>
     """,
     unsafe_allow_html=True
