@@ -99,7 +99,7 @@ def load_config():
             ip = server.get("IPAddress", "Unknown")
             server_ips.append(ip)
             
-        # Extract Colors
+        # Extract Colors and total_nhead per color
         # LineHead[].Color mapped to B, C, M, Y, W
         color_map = {
             "black": "B",
@@ -109,13 +109,42 @@ def load_config():
             "white": "W"
         }
         colors = []
+        color_head_counts = []
         line_heads = data.get("LineHead", [])
+        
         for lh in line_heads:
             color_name = lh.get("Color", "").lower()
-            if color_name in color_map:
-                colors.append(color_map[color_name])
+            
+            # Map the color to single letter if possible, otherwise use original
+            mapped_color = color_name
+            for key, val in color_map.items():
+                if color_name.startswith(key):
+                    mapped_color = val
+                    break
+                    
+            colors.append(mapped_color)
+            
+            # Extract nHead from LBID for this specific color
+            color_nhead = 0
+            lbid_list = lh.get("LBID", [])
+            for lbid in lbid_list:
+                lbid_str = str(lbid)
+                if len(lbid_str) == 3:
+                    s_idx = int(lbid_str[0]) - 1
+                    p_idx = int(lbid_str[1]) - 1
+                    l_idx = int(lbid_str[2]) - 1
+                    try:
+                        lb_entries = servers[s_idx]["PDC"][p_idx]["LB"]
+                        # The l_idx is the index into the LB array. We want the nHead property of this specific LB.
+                        nhead = lb_entries[l_idx].get("nHead", 0)
+                        color_nhead += nhead
+                    except (IndexError, KeyError, TypeError):
+                        pass
+            color_head_counts.append(str(color_nhead))
         
-        color_str = "".join(colors)
+        color_str = " ".join(colors)
+        head_count_str = " ".join(color_head_counts)
+        print_width = f"{int(color_head_counts[0]) * 43}mm" if color_head_counts else "Unknown"
         
         # Build Output String
         lines = []
@@ -126,6 +155,7 @@ def load_config():
             lines.append(f"Server {i+1} IP:    {ip}")
             
         lines.append(f"Color:          {color_str}")
+        lines.append(f"nHead:          {head_count_str}")
         
         return "\n".join(lines)
         
