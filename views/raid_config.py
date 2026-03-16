@@ -1,7 +1,8 @@
 import streamlit as st
-from utils.system_api import get_disk_info, init_raid_sequence, unmount_raid_volume, mount_raid_volume
+from utils.system_api import get_disk_info, init_raid_sequence, unmount_raid_volume, mount_raid_volume, write_syslog
 
 def show():
+    write_syslog("starting raid_config")
     st.title("RAID設定")
     st.write("RAID設定画面です。")
     # Placeholder for RAID Settings logic

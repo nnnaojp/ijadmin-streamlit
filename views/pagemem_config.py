@@ -1,8 +1,9 @@
 import streamlit as st
 from utils.config_manager import get_mistral_cma_size, update_mistral_cma_config
-from utils.system_api import get_server_total_memory_gb, execute_sudo_command
+from utils.system_api import get_server_total_memory_gb, execute_sudo_command, write_syslog
 
 def show():
+    write_syslog("starting pagemem_config")
     st.title("印刷ページメモリ調整")
     st.write("印刷ページメモリを調整します。")
     st.subheader("現在のページメモリ")

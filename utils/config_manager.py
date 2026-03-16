@@ -57,12 +57,12 @@ def save_config(config_data, config_index):
     confdir = '/usr/mistral/conf'
     etcdir = '/usr/mistral/etc'
 
-    # mistral.json -> /usr/mistral/conf
-    if not copy_file(os.path.join(tmpdir, 'mistral.json'), confdir): return False
-    # dcm.json -> /usr/mistral/conf
-    if not copy_file(os.path.join(tmpdir, 'dcm.json'), confdir): return False
-    # tiff2lb.json -> /usr/mistral/etc
-    if not copy_file(os.path.join(tmpdir, 'tiff2lb.json'), etcdir): return False
+    # # mistral.json -> /usr/mistral/conf
+    # if not copy_file(os.path.join(tmpdir, 'mistral.json'), confdir): return False
+    # # dcm.json -> /usr/mistral/conf
+    # if not copy_file(os.path.join(tmpdir, 'dcm.json'), confdir): return False
+    # # tiff2lb.json -> /usr/mistral/etc
+    # if not copy_file(os.path.join(tmpdir, 'tiff2lb.json'), etcdir): return False
 
     return True
 

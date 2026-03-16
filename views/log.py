@@ -3,9 +3,10 @@ import subprocess
 import os
 import time
 from utils.config_manager import get_sudo_password
-from utils.system_api import get_ip_address
+from utils.system_api import get_ip_address, write_syslog
 
 def show():
+    write_syslog("starting log")
     st.title("ログ取得")
     st.write("ログファイルをダウンロードします。")
     

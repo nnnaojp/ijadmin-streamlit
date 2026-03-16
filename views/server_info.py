@@ -2,7 +2,7 @@ import streamlit as st
 from utils.system_api import get_mistral_version, get_pdc_versions, get_hif_versions, get_cpu_info, get_memory_info, get_disk_info, write_syslog 
 
 def show():
-    write_syslog("server_info start")
+    write_syslog("starting server_info")
     st.title("サーバー情報")
     
     st.subheader("CPU")

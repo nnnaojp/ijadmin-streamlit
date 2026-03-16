@@ -21,6 +21,7 @@ def confirm_update_dialog(config_data, head_config_index):
 
 
 def show():
+    write_syslog("starting server_config")
     st.title("サーバー設定")
     st.write("サーバー設定の設定画面です。")
 

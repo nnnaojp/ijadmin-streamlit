@@ -39,6 +39,8 @@ def confirm_shutdown_dialog():
             st.rerun()
 
 def show():
+    from utils.system_api import write_syslog
+    write_syslog("starting reboot")
     st.title("再起動/シャットダウン")
     st.write("サーバーの再起動/シャットダウン画面です。")
 

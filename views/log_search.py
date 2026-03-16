@@ -1,8 +1,9 @@
 import streamlit as st
-from utils.system_api import search_system_logs
+from utils.system_api import search_system_logs, write_syslog
 from utils.config_manager import get_sudo_password
 
 def show():
+    write_syslog("starting log_search")
     st.title("ログ検索")
     
     # Input fields

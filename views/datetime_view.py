@@ -3,8 +3,10 @@ import subprocess
 import time
 from streamlit_javascript import st_javascript
 from utils.config_manager import get_sudo_password
+from utils.system_api import write_syslog
 
 def show():
+    write_syslog("starting datetime_view")
     st.title("サーバー時刻設定")
     st.write("サーバーの日時をブラウザのPCの日時に同期させます。")
 

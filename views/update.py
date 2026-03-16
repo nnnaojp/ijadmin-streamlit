@@ -1,7 +1,9 @@
 import os
 import streamlit as st
+from utils.system_api import write_syslog
 
 def show():
+    write_syslog("starting update")
     st.title("アップデート")
     st.write("システムアップデート画面です。")
     
