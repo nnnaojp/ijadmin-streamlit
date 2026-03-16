@@ -31,6 +31,25 @@ def render_help():
             display: flex;
             flex-direction: column;
         }
+
+        /* Match Main page titles */
+        h1 { font-size: 2.0rem; }
+        h2 { font-size: 1.5rem; }
+
+        /* Make manual text smaller */
+        .stMarkdown p, .stMarkdown li {
+            font-size: 0.85rem !important;
+        }
+        .stMarkdown h2 {
+            font-size: 1.3rem !important;
+            padding-bottom: 0.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .stMarkdown h3 {
+            font-size: 1.1rem !important;
+            margin-bottom: 0.3rem;
+            margin-top: 0.8rem;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -52,26 +71,25 @@ def render_help():
     if nav == "Main":
         st.switch_page("main.py")
 
-    st.sidebar.caption("Version: 0.1.0")
+    st.sidebar.caption("Version: 0.0.1")
 
     st.title("操作マニュアル")
     
-    # Locate PDF
-    pdf_path = Path(__file__).parent.parent / "fxij_configtool_r2.pdf"
+    # Locate Markdown manual
+    md_path = Path(__file__).parent.parent / "manual.md"
     
-    if not pdf_path.exists():
-        st.error(f"PDF manual not found at {pdf_path.absolute()}")
+    if not md_path.exists():
+        st.error(f"マニュアルファイルが見つかりません: {md_path.absolute()}")
         return
 
     try:
-        with open(pdf_path, "rb") as f:
-            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+        with open(md_path, "r", encoding="utf-8") as f:
+            md_content = f.read()
 
-        # Embed PDF
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
-        st.markdown(pdf_display, unsafe_allow_html=True)
+        # Display Markdown
+        st.markdown(md_content)
     except Exception as e:
-        st.error(f"Error loading PDF: {e}")
+        st.error(f"マニュアル読み込みエラー: {e}")
 
 if __name__ == "__main__":
     render_help()
