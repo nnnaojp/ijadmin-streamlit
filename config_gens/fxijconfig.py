@@ -3,9 +3,11 @@ import config_gens.dcm_json as dcm_json
 import config_gens.tiff2lb_json as tiff2lb_json
 import config_gens.dnc_json as dnc_json
 
-def setup1_Type500_RC1536_40mpm(mc, dc, tc, dnc, iparry):
+def setup1_Type500_RC1536_40mpm(mc:mistral_json.MistralConfig,
+     dc:dcm_json.DcmConfig, tc:tiff2lb_json.Tiff2lbConfig, 
+     dnc:dnc_json.DncConfig, iparry, pdir):
     # setup mistral.json
-    mc.setSystem(("SambaG3", 4), ("RC1536", 1), nserver=1)
+    mc.setSystem(("SambaG3", 4), ("RC1536", 1), nserver=1,print_dir=pdir)
     mc.setServer(
         [(4, 12), (4, 12), (4, 12), (4, 12)],  # PDC1(nHIF,nHEAD)
         [(3, 5)],  # PDC2(nHIF,nHEAD)
@@ -50,9 +52,15 @@ def setup1_Type500_RC1536_40mpm(mc, dc, tc, dnc, iparry):
     )
     tc.save()
 
-def setup2_Type500_RC1536x2_40mpm(mc, dc, tc, dnc, iparry):
+    # setup dnc.json
+    dnc.setMaxNozzleNumber(24448)
+    dnc.save()
+
+def setup2_Type500_RC1536x2_40mpm(mc:mistral_json.MistralConfig,
+     dc:dcm_json.DcmConfig, tc:tiff2lb_json.Tiff2lbConfig, 
+     dnc:dnc_json.DncConfig, iparry, pdir):
     # setup mistral.json
-    mc.setSystem(("SambaG3", 4), ("RC1536", 2), nserver=1)
+    mc.setSystem(("SambaG3", 4), ("RC1536", 2), nserver=1,print_dir=pdir)
     mc.setServer(
         [(4, 12), (4, 12), (4, 12), (4, 12)],  # PDC1(nHIF,nHEAD)
         [(3, 5), (3, 5)],  # PDC2(nHIF,nHEAD)
@@ -102,9 +110,15 @@ def setup2_Type500_RC1536x2_40mpm(mc, dc, tc, dnc, iparry):
     )
     tc.save()
 
-def setup3_Type500_SambaG5Lx2_40mpm(mc, dc, tc, dnc, iparry):
+    # setup dnc.json
+    dnc.setMaxNozzleNumber(24448)
+    dnc.save()
+
+def setup3_Type500_SambaG5Lx2_40mpm(mc:mistral_json.MistralConfig,
+     dc:dcm_json.DcmConfig, tc:tiff2lb_json.Tiff2lbConfig, 
+     dnc:dnc_json.DncConfig, iparry, pdir):
     # setup mistral.json
-    mc.setSystem(("SambaG3", 6), nserver=1)
+    mc.setSystem(("SambaG3", 6), nserver=1,print_dir=pdir)
     mc.setServer(
         [(4, 12), (4, 12), (4, 12), (4, 12)],  # PDC1(nHIF,nHEAD)
         [(4, 12), (4, 12)],  # PDC2(nHIF,nHEAD)
@@ -154,9 +168,15 @@ def setup3_Type500_SambaG5Lx2_40mpm(mc, dc, tc, dnc, iparry):
     )
     tc.save()
 
-def setup4_Type1000_RC1536_40mpm(mc, dc, tc, dnc, iparry):
+    # setup dnc.json
+    dnc.setMaxNozzleNumber(24448)
+    dnc.save()
+
+def setup4_Type1000_RC1536_40mpm(mc:mistral_json.MistralConfig,
+     dc:dcm_json.DcmConfig, tc:tiff2lb_json.Tiff2lbConfig, 
+     dnc:dnc_json.DncConfig, iparry, pdir):
     # setup mistral.json
-    mc.setSystem(("SambaG3", 4), ("RC1536", 1), nserver=2)
+    mc.setSystem(("SambaG3", 4), ("RC1536", 1), nserver=2,print_dir=pdir)
     mc.setServer(
         [(4, 12), (4, 12), (4, 12), (4, 12)],  # PDC1(nHIF,nHEAD)
         svrid=1, ipaddr=iparry[0])
@@ -213,9 +233,15 @@ def setup4_Type1000_RC1536_40mpm(mc, dc, tc, dnc, iparry):
     )
     tc.save()
 
-def setup5_Type1000_RC1536x2_40mpm(mc, dc, tc, dnc, iparry):
+    # setup dnc.json
+    dnc.setMaxNozzleNumber(49024)
+    dnc.save()
+
+def setup5_Type1000_RC1536x2_40mpm(mc:mistral_json.MistralConfig,
+     dc:dcm_json.DcmConfig, tc:tiff2lb_json.Tiff2lbConfig, 
+     dnc:dnc_json.DncConfig, iparry, pdir):
     # setup mistral.json
-    mc.setSystem(("SambaG3", 4), ("RC1536", 2), nserver=2)
+    mc.setSystem(("SambaG3", 4), ("RC1536", 2), nserver=2,print_dir=pdir)
     mc.setServer(
         [(4, 12), (4, 12), (4, 12), (4, 12)],  # PDC1(nHIF,nHEAD)
         svrid=1, ipaddr=iparry[0])
@@ -276,9 +302,15 @@ def setup5_Type1000_RC1536x2_40mpm(mc, dc, tc, dnc, iparry):
     )
     tc.save()
 
-def setup6_Type1000_SambaG5Lx2_30mpm(mc, dc, tc, dnc, iparry):
+    # setup dnc.json
+    dnc.setMaxNozzleNumber(49024)
+    dnc.save()
+
+def setup6_Type1000_SambaG5Lx2_30mpm(mc:mistral_json.MistralConfig,
+     dc:dcm_json.DcmConfig, tc:tiff2lb_json.Tiff2lbConfig, 
+     dnc:dnc_json.DncConfig, iparry, pdir):
     # setup mistral.json
-    mc.setSystem(("SambaG3", 6), nserver=2)
+    mc.setSystem(("SambaG3", 6), nserver=2,print_dir=pdir)
     mc.setServer(
         [(4, 12), (4, 12), (4, 12), (4, 12)],  # PDC1(nHIF,nHEAD)
         svrid=1, ipaddr=iparry[0])
@@ -344,9 +376,15 @@ def setup6_Type1000_SambaG5Lx2_30mpm(mc, dc, tc, dnc, iparry):
     )
     tc.save()
 
-def setup7_Type1000_SambaG5Lx2_50mpm(mc, dc, tc, dnc, iparry):
+    # setup dnc.json
+    dnc.setMaxNozzleNumber(49024)
+    dnc.save()
+
+def setup7_Type1000_SambaG5Lx2_50mpm(mc:mistral_json.MistralConfig,
+     dc:dcm_json.DcmConfig, tc:tiff2lb_json.Tiff2lbConfig, 
+     dnc:dnc_json.DncConfig, iparry, pdir):
     # setup mistral.json
-    mc.setSystem(("SambaG3", 6), nserver=3)
+    mc.setSystem(("SambaG3", 6), nserver=3,print_dir=pdir)
     mc.setServer(
         [(4, 12), (4, 12), (4, 12), (4, 12)],  # PDC1(nHIF,nHEAD)
         svrid=1, ipaddr=iparry[0])
@@ -413,6 +451,10 @@ def setup7_Type1000_SambaG5Lx2_50mpm(mc, dc, tc, dnc, iparry):
           )),
     )
     tc.save()
+
+    # setup dnc.json
+    dnc.setMaxNozzleNumber(49024)
+    dnc.save()
 
 if __name__ == '__main__':
     mc = mistral_json.MistralConfig()

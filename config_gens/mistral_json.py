@@ -72,10 +72,11 @@ class MistralConfig:
         support_heads[arg[0]]["nLineHead"] = arg[1]
         return support_heads[arg[0]]
 
-    def setSystem(self, *args, nserver):
+    def setSystem(self, *args, nserver,print_dir):
         lhead = 0
         for arg in args:
             self.system["System"]["InkjetHead"].append(self._inkJetHeadEntry(arg))
+            self.system["System"]["InkjetHead"][-1]["PrintDirection"] = print_dir
             lhead = lhead + arg[1]
         self.system["System"]["nServer"] = nserver
         self.system["System"]["nLineHead"] = lhead

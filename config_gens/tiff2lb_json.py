@@ -1,13 +1,13 @@
 import json
 
-class Tiff2lb:
+class Tiff2lbConfig:
     def __init__(self,fpath='/tmp/tiff2lb.json'):
         self.fpath = fpath
         self.params = {
             "Threads": 4,
             "Mirror": False,
             "Compress": False,
-            "UseLastLine": False,
+            "UseLastLine": True,
         }
         self.headtype = {"LineHeadType": []}
         self.linehead = {"LineHead": []}
@@ -29,7 +29,7 @@ class Tiff2lb:
                     ],
                     "Y": [
                         1200
-                    ]
+                     ]
                 }
             },
             "Dimatix_SambaG3Lx24": {

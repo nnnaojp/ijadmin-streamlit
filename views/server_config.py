@@ -4,8 +4,10 @@ from utils.system_api import write_syslog, import_settings_package
 
 @st.dialog("設定更新の確認")
 def confirm_update_dialog(config_data, head_config_index):
-    write_syslog("xxx")
     # st.write(config_data, head_config_index)
+
+    print(0 if config_data.get("print_direction") == "正方向" else 1)
+
     st.write("設定を更新しますか？")
     col_yes, col_no = st.columns(2)
     with col_yes:

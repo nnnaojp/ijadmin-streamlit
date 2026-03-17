@@ -20,9 +20,10 @@ def save_config(config_data, config_index):
     ]
     mc = mistral_json.MistralConfig()
     dc = dcm_json.DcmConfig()
-    tc = tiff2lb_json.Tiff2lb()
-    dnc = dnc_json.MistralConfig()
-    generator[config_index](mc,dc,tc,dnc,config_data['ips'])
+    tc = tiff2lb_json.Tiff2lbConfig()
+    dnc = dnc_json.DncConfig()
+    generator[config_index](mc,dc,tc,dnc,config_data['ips'],
+        0 if config_data.get("print_direction") == "正方向" else 1)
     
     # Needs subprocess to run sudo cp
     import subprocess
