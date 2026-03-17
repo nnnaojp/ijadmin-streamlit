@@ -9,13 +9,18 @@ def confirm_reboot_dialog():
     with col_yes:
         if st.button("はい", key="btn_reboot_yes"):
             with st.spinner("再起動を実行中..."):
-                result = reboot_system()
-                if result == "Success":
-                    st.success("再起動コマンドを送信しました。")
-                    time.sleep(3)
-                    st.rerun()
-                else:
-                    st.error(result)
+                try:
+                    result = reboot_system()
+                    if result == "Success":
+                        st.success("再起動コマンドを送信しました。")
+                        time.sleep(3)
+                        st.rerun()
+                    else:
+                        write_syslog(f"Reboot failed! Result: {result}")
+                        st.error(result)
+                except Exception as e:
+                    write_syslog(f"Reboot failed! Error: {e}")
+                    st.error(f"実行時エラーが発生しました: {e}")
     with col_no:
         if st.button("いいえ", key="btn_reboot_no"):
             st.rerun()
@@ -27,13 +32,18 @@ def confirm_shutdown_dialog():
     with col_yes:
         if st.button("はい", key="btn_shutdown_yes"):
             with st.spinner("シャットダウンを実行中..."):
-                result = shutdown_system()
-                if result == "Success":
-                    st.success("シャットダウンコマンドを送信しました。")
-                    time.sleep(3)
-                    st.rerun()
-                else:
-                    st.error(result)
+                try:
+                    result = shutdown_system()
+                    if result == "Success":
+                        st.success("シャットダウンコマンドを送信しました。")
+                        time.sleep(3)
+                        st.rerun()
+                    else:
+                        write_syslog(f"Shutdown failed! Result: {result}")
+                        st.error(result)
+                except Exception as e:
+                    write_syslog(f"Shutdown failed! Error: {e}")
+                    st.error(f"実行時エラーが発生しました: {e}")
     with col_no:
         if st.button("いいえ", key="btn_shutdown_no"):
             st.rerun()

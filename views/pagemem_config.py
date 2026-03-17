@@ -60,51 +60,56 @@ def show():
             # Logic Execution
             if is_processing:
                 with st.spinner("設定を更新中..."):
-                    # Update GRUB Config CMA size
-                    res_config_update = update_mistral_cma_config(server_mem)
-                    
-                    final_result = "Failure"
-                    error_msg = ""
+                    try:
+                        # Update GRUB Config CMA size
+                        res_config_update = update_mistral_cma_config(server_mem)
+                        
+                        final_result = "Failure"
+                        error_msg = ""
 
-                    if res_config_update != "Success":
-                         error_msg = f"/etc/default/grubの更新に失敗しました: {res_config_update}"
-                    else:
-                        # Remount /boot RW
-                        res_mount_rw = execute_sudo_command(["mount", "-o", "rw,remount", "/boot"])
-                        if res_mount_rw != "Success":
-                            error_msg = f"/bootのリマウント(rw)に失敗しました: {res_mount_rw}"
+                        if res_config_update != "Success":
+                             error_msg = f"/etc/default/grubの更新に失敗しました: {res_config_update}"
                         else:
-                            # Update Grub
-                            res_update = execute_sudo_command(["update-grub"])
-                            
-                            # Remount /boot RO (Always try to remount RO if RW was successful)
-                            res_mount_ro = execute_sudo_command(["mount", "-o", "ro,remount", "/boot"])
-            
-                            if res_update == "Success":
-                                if res_mount_ro == "Success":
-                                    final_result = "Success"
-                                else:
-                                    # Success but with warning on RO remount
-                                    final_result = "Warning"
-                                    error_msg = f"update-grubは成功しましたが、/bootのリマウント(ro)に失敗しました: {res_mount_ro}"
+                            # Remount /boot RW
+                            res_mount_rw = execute_sudo_command(["mount", "-o", "rw,remount", "/boot"])
+                            if res_mount_rw != "Success":
+                                error_msg = f"/bootのリマウント(rw)に失敗しました: {res_mount_rw}"
                             else:
-                                error_msg = f"update-grubの実行に失敗しました: {res_update}"
-                                if res_mount_ro != "Success":
-                                    error_msg += f"\nさらに、/bootのリマウント(ro)にも失敗しました: {res_mount_ro}"
+                                # Update Grub
+                                res_update = execute_sudo_command(["update-grub"])
+                                
+                                # Remount /boot RO (Always try to remount RO if RW was successful)
+                                res_mount_ro = execute_sudo_command(["mount", "-o", "ro,remount", "/boot"])
                 
-                st.session_state.pagemem_initializing = False
+                                if res_update == "Success":
+                                    if res_mount_ro == "Success":
+                                        final_result = "Success"
+                                    else:
+                                        # Success but with warning on RO remount
+                                        final_result = "Warning"
+                                        error_msg = f"update-grubは成功しましたが、/bootのリマウント(ro)に失敗しました: {res_mount_ro}"
+                                else:
+                                    error_msg = f"update-grubの実行に失敗しました: {res_update}"
+                                    if res_mount_ro != "Success":
+                                        error_msg += f"\nさらに、/bootのリマウント(ro)にも失敗しました: {res_mount_ro}"
+                    except Exception as e:
+                        final_result = "Exception"
+                        error_msg = f"実行時エラーが発生しました: {e}"
+                    
+                    st.session_state.pagemem_initializing = False
 
-                if final_result == "Success":
-                    is_success = True
-                    st.session_state.show_pagemem_confirm = False
-                elif final_result == "Warning":
-                    # Treated somewhat like success but showing warning. 
-                    # User didn't specify warning behavior, but let's clear dialog and show warning.
-                    is_success = True 
-                    st.session_state.show_pagemem_confirm = False
-                    # We will output warning below but let's treat "action completed" as success.
-                else:
-                    msg_container.error(f"実行に失敗しました:\n{error_msg}")
+                    if final_result == "Success":
+                        is_success = True
+                        st.session_state.show_pagemem_confirm = False
+                    elif final_result == "Warning":
+                        # Treated somewhat like success but showing warning. 
+                        # User didn't specify warning behavior, but let's clear dialog and show warning.
+                        is_success = True 
+                        st.session_state.show_pagemem_confirm = False
+                        # We will output warning below but let's treat "action completed" as success.
+                    else:
+                        write_syslog(f"Page Memory Config failed! Error: {error_msg}")
+                        msg_container.error(f"実行に失敗しました:\n{error_msg}")
 
         # Clear container and show success/warning message if successful
         if is_success:

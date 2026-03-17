@@ -21,6 +21,7 @@ def show():
                 
                 st.success(f"ファイルをコピーしました: {file_path}")
             except Exception as e:
+                write_syslog(f"Update failed! Error: {e}")
                 st.error(f"ファイルのコピー中にエラーが発生しました: {e}")
         else:
             st.error("ファイルが選択されていません。")

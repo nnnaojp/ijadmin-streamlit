@@ -5,17 +5,18 @@ from utils.system_api import write_syslog, import_settings_package
 @st.dialog("設定更新の確認")
 def confirm_update_dialog(config_data, head_config_index):
     # st.write(config_data, head_config_index)
-
-    print(0 if config_data.get("print_direction") == "正方向" else 1)
-
     st.write("設定を更新しますか？")
     col_yes, col_no = st.columns(2)
     with col_yes:
         if st.button("はい"):
-            if save_config(config_data,head_config_index):
-                st.session_state.update_msg = ("success", f"設定を更新しました (ヘッド構成: {config_data['head_config']})")
-            else:
-                st.session_state.update_msg = ("error", "設定の更新に失敗しました")
+            try:
+                if save_config(config_data,head_config_index):
+                    st.session_state.update_msg = ("success", f"設定を更新しました (ヘッド構成: {config_data['head_config']})")
+                else:
+                    st.session_state.update_msg = ("error", "設定の更新に失敗しました")
+            except Exception as e:
+                write_syslog(f"Config update failed! Error: {e}")
+                st.session_state.update_msg = ("error", f"実行時エラーが発生しました: {e}")
             st.rerun()
     with col_no:
         if st.button("いいえ"):

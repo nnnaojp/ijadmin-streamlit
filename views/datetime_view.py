@@ -95,8 +95,10 @@ def show():
                         time.sleep(1)
                         st.rerun()
                     else:
+                        write_syslog(f"Time sync failed! Result: {res.stderr}")
                         st.error(f"更新に失敗しました:\n{res.stderr}")
                         st.session_state.processing_time_update = False
                 except Exception as e:
+                    write_syslog(f"Time sync failed! Error: {e}")
                     st.error(f"実行エラー: {e}")
                     st.session_state.processing_time_update = False

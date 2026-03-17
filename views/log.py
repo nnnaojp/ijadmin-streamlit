@@ -53,12 +53,14 @@ def show():
                 st.success(f"アーカイブを作成しました: {output_zip}")
                 st.session_state.generated_zip = output_zip
             else:
+                write_syslog(f"Log Archive failed! Result: {proc.stderr}")
                 st.error("アーカイブ作成に失敗しました。")
                 # Combine stdout and stderr to ensure we see the message
                 error_details = f"STDOUT:\n{proc.stdout}\n\nSTDERR:\n{proc.stderr}"
                 st.code(error_details, language="text")
                 # Common sudo error: "incorrect password" uses stderr
         except Exception as e:
+            write_syslog(f"Log Archive failed! Error: {e}")
             st.error(f"予期せぬエラーが発生しました: {e}")
 
     # Show download button if file is generated and exists

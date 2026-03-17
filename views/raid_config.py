@@ -13,24 +13,34 @@ def show():
     st.write("") # Spacer
     
     if st.button("マウント解除"):
-        result = unmount_raid_volume()
-        if result == "Success":
-            st.success("マウントを解除しました。")
-            # Refresh disk info
-            disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
-        else:
-            st.error(f"マウント解除に失敗しました:\n{result}")
+        try:
+            result = unmount_raid_volume()
+            if result == "Success":
+                st.success("マウントを解除しました。")
+                # Refresh disk info
+                disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+            else:
+                write_syslog(f"Unmount failed! Result: {result}")
+                st.error(f"マウント解除に失敗しました:\n{result}")
+        except Exception as e:
+            write_syslog(f"Unmount failed! Error: {e}")
+            st.error(f"実行時エラーが発生しました: {e}")
 
     st.write("") # Spacer
 
     if st.button("マウント実行"):
-        result = mount_raid_volume()
-        if result == "Success":
-            st.success("マウントしました。")
-            # Refresh disk info
-            disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
-        else:
-            st.error(f"マウントに失敗しました:\n{result}")
+        try:
+            result = mount_raid_volume()
+            if result == "Success":
+                st.success("マウントしました。")
+                # Refresh disk info
+                disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+            else:
+                write_syslog(f"Mount failed! Result: {result}")
+                st.error(f"マウントに失敗しました:\n{result}")
+        except Exception as e:
+            write_syslog(f"Mount failed! Error: {e}")
+            st.error(f"実行時エラーが発生しました: {e}")
 
     st.write("") # Spacer
     if st.button("RAID初期化"):
@@ -70,17 +80,23 @@ def show():
             if is_processing:
                 with st.spinner("RAID初期化を実行中..."):
                     # Force a small sleep or yield if needed for UI update? Streamlit usually handles this.
-                    result = init_raid_sequence()
-                
-                st.session_state.raid_initializing = False
-                
-                if result == "Success":
-                    is_success = True
-                    # Update disk info
-                    disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
-                    st.session_state.show_raid_confirm = False
-                else:
-                    msg_container.error(f"RAID初期化に失敗しました:\n{result}")
+                    try:
+                        result = init_raid_sequence()
+                    
+                        st.session_state.raid_initializing = False
+                        
+                        if result == "Success":
+                            is_success = True
+                            # Update disk info
+                            disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+                            st.session_state.show_raid_confirm = False
+                        else:
+                            write_syslog(f"RAID Init failed! Result: {result}")
+                            msg_container.error(f"RAID初期化に失敗しました:\n{result}")
+                    except Exception as e:
+                        st.session_state.raid_initializing = False
+                        write_syslog(f"RAID Init failed! Error: {e}")
+                        msg_container.error(f"実行時エラーが発生しました: {e}")
 
         # Clear container and show success message if successful
         if is_success:
