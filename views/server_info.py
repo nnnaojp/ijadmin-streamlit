@@ -19,7 +19,11 @@ def show():
     
     st.subheader("PDCバージョン")
     pdc_versions = get_pdc_versions()
-    pdc_str = " ".join(pdc_versions) if pdc_versions else "Unknown"
+    # pdc_str = " ".join(pdc_versions) if pdc_versions else "Unknown"
+    if pdc_versions:
+        pdc_str = "\n".join(pdc_versions)
+    else:
+        pdc_str = "Unknown"
     st.code(pdc_str, language=None)
     
     st.subheader("HIFバージョン")

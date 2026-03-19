@@ -78,7 +78,7 @@ def get_pdc_versions():
     if not password:
         return ["Error: sudo password not configured"] * 4
 
-    for i in range(1, 5):
+    for i in range(1, 3):
         command = ["sudo", "-S", "/usr/mistral/bin/pdc", "-i", str(i), "--pdcr", "0xf4", "1"]
         try:
             result = subprocess.run(
@@ -95,10 +95,13 @@ def get_pdc_versions():
                 output = result.stdout.strip()
                 parts = output.split()
                 if len(parts) >= 2:
-                    versions.append(parts[1])
+                    version = f"(PDC{i}) {parts[1]}"
+                    versions.append(version)
                 else:
                     # Fallback if format is unexpected
                     versions.append(output)
+            else:
+                break
         except Exception as e:
             versions.append(f"Exception: {str(e)}")
             
@@ -114,40 +117,44 @@ def get_hif_versions():
         # Return 4x4 error structure
         return [["Error: sudo password not configured"] * 4 for _ in range(4)]
 
-    for pdc_i in range(1, 5):
-        pdc_versions = []
-        for hif_i in range(1, 5):
-            command = ["sudo", "-S", "/usr/mistral/bin/pdc", "-i", str(pdc_i), str(hif_i), "--hifr", "0xf008", "4"]
-            try:
-                result = subprocess.run(
-                    command,
-                    input=password + "\n",
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                
-                if result.returncode == 0:
-                    # Output example:
-                    # f008: 09
-                    # f009: 10
-                    # f00a: 24
-                    # f00b: 20
-                    # We want to form "20241009" (f00b + f00a + f009 + f008)
-                    lines = result.stdout.strip().split('\n')
-                    byte_values = []
-                    for line in lines:
-                        parts = line.split()
-                        if len(parts) >= 2:
-                            byte_values.append(parts[1])
-                    
-                    # Reverse join
-                    version_str = "".join(reversed(byte_values))
-                    all_versions.append([f"(PDC{pdc_i})"])
-                    pdc_versions.append(version_str)
-            except Exception as e:
-                pdc_versions.append(f"Exception: {str(e)}")
+    for pdc_i in range(1, 3):
+        pdc_versions = [f"(PDC{pdc_i})"]
         all_versions.append(pdc_versions)
+        for lb_i in range(1, 5):
+            lb_versions = [f" (LB{lb_i})"]
+            for hif_i in range(1, 5):
+                command = ["sudo", "-S", "/usr/mistral/bin/pdc", "-i", str(pdc_i), str(lb_i), str(hif_i), "--hifr", "0xf008", "4"]
+                try:
+                    result = subprocess.run(
+                        command,
+                        input=password + "\n",
+                        capture_output=True,
+                        text=True,
+                        check=False
+                    )
+                    print("zzz ret code: ", result.returncode)
+                    if result.returncode == 0:
+                        # Output example:
+                        # f008: 09
+                        # f009: 10
+                        # f00a: 24
+                        # f00b: 20
+                        # We want to form "20241009" (f00b + f00a + f009 + f008)
+                        lines = result.stdout.strip().split('\n')
+                        byte_values = []
+                        for line in lines:
+                            parts = line.split()
+                            if len(parts) >= 2:
+                                byte_values.append(parts[1])
+                    
+                        # Reverse join
+                        version_str = "".join(reversed(byte_values))
+                        lb_versions.append(version_str)
+                    else:
+                        break
+                except Exception as e:
+                    lb_versions.append(f"Exception: {str(e)}")
+            all_versions.append(lb_versions)
             
     return all_versions
 
