@@ -156,7 +156,7 @@ def load_config():
             lines.append(f"Server {i+1} IP:    {ip}")
             
         lines.append(f"Color:          {color_str}")
-        lines.append(f"nHead:          {head_count_str}")
+        lines.append(f"HeadCount:      {head_count_str}")
         
         return "\n".join(lines)
         

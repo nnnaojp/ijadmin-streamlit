@@ -73,7 +73,7 @@ def render_help():
 
     st.sidebar.caption("Version: 0.0.1")
 
-    st.title("操作マニュアル")
+    #st.title("操作ヘルプ")
     
     # Locate Markdown manual
     md_path = Path(__file__).parent.parent / "manual.md"

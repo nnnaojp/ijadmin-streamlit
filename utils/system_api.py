@@ -119,9 +119,21 @@ def get_hif_versions():
 
     for pdc_i in range(1, 3):
         pdc_versions = [f"(PDC{pdc_i})"]
-        all_versions.append(pdc_versions)
         for lb_i in range(1, 5):
             lb_versions = [f" (LB{lb_i})"]
+            alive_lbs = 0
+            init_command = ["sudo", "-S", "/usr/mistral/bin/pdc", "-i", str(pdc_i), str(lb_i), "--csinit-hif"]
+            try:
+                subprocess.run(
+                    init_command,
+                    input=password + "\n",
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+            except Exception:
+                pass
+
             for hif_i in range(1, 5):
                 command = ["sudo", "-S", "/usr/mistral/bin/pdc", "-i", str(pdc_i), str(lb_i), str(hif_i), "--hifr", "0xf008", "4"]
                 try:
@@ -150,11 +162,14 @@ def get_hif_versions():
                         # Reverse join
                         version_str = "".join(reversed(byte_values))
                         lb_versions.append(version_str)
+                        alive_lbs = alive_lbs+1
                     else:
                         break
                 except Exception as e:
                     lb_versions.append(f"Exception: {str(e)}")
-            all_versions.append(lb_versions)
+            if alive_lbs > 0:
+                all_versions.append(pdc_versions)
+                all_versions.append(lb_versions)
             
     return all_versions
 
