@@ -12,6 +12,7 @@ showSidebarNavigation = false
 
 [system]
 sudo_password="gaki0101"
+admin_password="ijadmin"
 
 [theme]
 base="dark"

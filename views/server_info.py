@@ -3,6 +3,7 @@ from utils.system_api import get_mistral_version, get_pdc_versions, get_hif_vers
 
 def show():
     write_syslog("starting server_info")
+    
     st.title("サーバー情報")
     
     st.subheader("CPU")
@@ -14,7 +15,13 @@ def show():
     st.subheader("ディスク")
     st.code(get_disk_info(), language=None)
 
-    st.subheader("Mistralバージョン")
+    col1, col2 = st.columns([0.85, 0.15])
+    with col1:
+        st.subheader("Mistralバージョン")
+    with col2:
+        if st.button("表示更新", use_container_width=True):
+            st.rerun()
+            
     st.code(get_mistral_version(), language=None)
     
     st.subheader("PDCバージョン")

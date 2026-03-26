@@ -40,6 +40,23 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+from utils.config_manager import get_admin_password
+
+# Login Screen
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("ログイン")
+    password = st.text_input("パスワードを入力してください", type="password")
+    if st.button("ログイン"):
+        if password == get_admin_password():
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("パスワードが正しくありません")
+    st.stop()  # Stop rendering the rest of the app until authenticated
+
 # Sidebar Navigation
 logo_path = Path(__file__).parent / "assets/logo.jpg"
 if logo_path.exists():

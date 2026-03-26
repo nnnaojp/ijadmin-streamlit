@@ -179,6 +179,21 @@ def get_sudo_password():
         return f"Error reading sudo password: {e}"
         return ""
 
+def get_admin_password():
+    """Reads admin password from .streamlit/config.toml"""
+    import toml
+    try:
+        config_path = ".streamlit/config.toml"
+        if not os.path.exists(config_path):
+            config_path = os.path.join(os.path.dirname(__file__), "../.streamlit/config.toml")
+        
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = toml.load(f)
+            return data.get("system", {}).get("admin_password", "ijadmin")
+    except Exception as e:
+        print(f"Error reading admin password: {e}")
+        return "ijadmin"
+
 def get_mistral_cma_size():
     """Returns Mistral page memory size in GB from /etc/default/grub (cma=XXG)."""
     import re
