@@ -56,15 +56,18 @@ def show():
     # Print Direction
     print_direction = st.radio("ヘッド印刷向き", ["正方向", "逆方向"])
 
+    req_servers_map = {0: 1, 1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3}
+    num_servers = req_servers_map.get(head_config_index, 4)
+
     # Server IP Addresses
     st.subheader("サーバーIPアドレス")
     col1, col2 = st.columns(2)
     with col1:
-        ip1 = st.text_input("サーバー１のIPアドレス", value="192.168.151.100")
-        ip3 = st.text_input("サーバー３のIPアドレス", value="192.168.151.102")
+        ip1 = st.text_input("サーバー１のIPアドレス", value="192.168.151.100", disabled=(num_servers < 1))
+        ip3 = st.text_input("サーバー３のIPアドレス", value="192.168.151.102", disabled=(num_servers < 3))
     with col2:
-        ip2 = st.text_input("サーバー２のIPアドレス", value="192.168.151.101")
-        ip4 = st.text_input("サーバー４のIPアドレス", value="192.168.151.103")
+        ip2 = st.text_input("サーバー２のIPアドレス", value="192.168.151.101", disabled=(num_servers < 2))
+        ip4 = st.text_input("サーバー４のIPアドレス", value="192.168.151.103", disabled=(num_servers < 4))
 
     # Buttons
     # Check for update result message from previous run

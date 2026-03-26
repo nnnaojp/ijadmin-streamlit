@@ -5,7 +5,8 @@ def show():
     write_syslog("starting server_info")
     
     st.title("サーバー情報")
-    
+    st.write("ハードウェア情報を表示します。")
+
     st.subheader("CPU")
     st.code(get_cpu_info(), language=None)
 
