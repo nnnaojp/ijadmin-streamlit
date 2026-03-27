@@ -48,7 +48,7 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state.authenticated:
     st.title("ログイン")
-    password = st.text_input("パスワードを入力してください", type="password")
+    password = st.text_input("パスワードを入力してください", type="password", max_chars=16)
     if st.button("ログイン"):
         if password == get_admin_password():
             st.session_state.authenticated = True
