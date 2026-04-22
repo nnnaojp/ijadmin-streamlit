@@ -299,8 +299,8 @@ def get_cpu_info():
 
 
 def get_memory_info():
-    """Retrieves memory information using free -h and formats it."""
-    result = run_command(["free", "-h"])
+    """Retrieves memory information using free without args and formats it by dividing values by 1000000."""
+    result = run_command(["free"])
     if isinstance(result, str):
         return "Unknown"
     
@@ -317,7 +317,14 @@ def get_memory_info():
         # Parse data lines
         for line in lines[1:]:
             parts = line.split()
-            rows.append(parts)
+            new_parts = [parts[0]]
+            for p in parts[1:]:
+                try:
+                    val = int(float(p) / 1000000.0)
+                    new_parts.append(str(val))
+                except ValueError:
+                    new_parts.append(p)
+            rows.append(new_parts)
         
         # Calculate column widths
         max_cols = len(headers)
@@ -362,16 +369,13 @@ def get_server_total_memory_gb():
     """Returns total server memory in GB."""
     # Use free -g or parse /proc/meminfo
     try:
-        # free -g | awk '/^Mem:/{print $2}'
-        result = run_command(["free", "-g"])
+        result = run_command(["free"])
         if result.returncode == 0:
             lines = result.stdout.strip().split('\n')
             if len(lines) >= 2:
-                # Header: total used free ...
-                # Mem:    123   ...
                 parts = lines[1].split()
                 if len(parts) >= 2:
-                    return int(parts[1])
+                    return int(float(parts[1]) / 1000000.0)
     except Exception:
         pass
     return 0

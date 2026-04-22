@@ -2,7 +2,7 @@ import streamlit as st
 from PIL import Image
 from views import server_config, raid_config, update, log, reboot, server_info, log_search, datetime_view, pagemem_config
 from pathlib import Path
-from utils.system_api import get_ip_address, write_syslog
+from utils.system_api import get_ip_address, write_syslog, execute_sudo_command
 
 VERSION="0.0.1"
 _favicon = Image.open(Path(__file__).parent.parent / "assets/favicon.ico")
@@ -56,9 +56,13 @@ if not st.session_state.authenticated:
     if submitted:
         if password == get_admin_password():
             st.session_state.authenticated = True
+            # execute_sudo_command(["killall", "splmd", "splwd", "dcmd", "sg3sd"])
+            execute_sudo_command(["killall", "dcmd", "sg3sd"])
             st.rerun()
         else:
             st.error("パスワードが正しくありません")
+            
+    st.markdown("※コンフィグツールにログインするとMistralサービスは一旦停止されます。<br>※作業終了後に再起動メニューからモジュール再起動を実行してください。", unsafe_allow_html=True)
     st.stop()  # Stop rendering the rest of the app until authenticated
 
 # Sidebar Navigation

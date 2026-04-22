@@ -14,12 +14,22 @@ def show():
     server_mem = get_server_total_memory_gb()
 
     def render_mem_info():
-        cma_mem = get_mistral_cma_size()
-        # We can reuse the outer server_mem or fetch again. 
-        # Using outer variable is fine if it doesn't change.
+        cma_mem_str = get_mistral_cma_size()
+        try:
+            cma_mem = int(float(cma_mem_str))
+        except (ValueError, TypeError):
+            cma_mem = -1
+
+        expected_cma = 20 if server_mem >= 16 else 10
+        is_ok = (cma_mem == expected_cma)
+
         with mem_info_placeholder.container():
             st.write(f"- サーバーメモリ:  {server_mem} GB")
-            st.write(f"- 印刷ページメモリ:  {cma_mem} GB")
+            if is_ok:
+                st.write(f"- 印刷ページメモリ:  :green[{cma_mem_str} GB]")
+            else:
+                st.write(f"- 印刷ページメモリ:  :red[{cma_mem_str} GB]")
+                st.warning(f"印刷ページメモリが推奨値({expected_cma}GB)になっていません。「印刷ページメモリ調整」を実行してください。")
             
     render_mem_info()
         
