@@ -1,11 +1,13 @@
 import streamlit as st
+from PIL import Image
 import os
 import re
 import base64
 from pathlib import Path
 from utils.system_api import get_ip_address
 
-st.set_page_config(page_title="FXIJコンフィグツール ヘルプ", layout="wide")
+_favicon = Image.open(Path(__file__).parent.parent.parent / "assets/favicon.ico")
+st.set_page_config(page_title="FXIJコンフィグツール ヘルプ", layout="wide", page_icon=_favicon)
 
 def get_base64_image(image_path):
     """Encodes an image to a base64 string."""

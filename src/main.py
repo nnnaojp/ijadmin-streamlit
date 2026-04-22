@@ -1,10 +1,12 @@
 import streamlit as st
+from PIL import Image
 from views import server_config, raid_config, update, log, reboot, server_info, log_search, datetime_view, pagemem_config
 from pathlib import Path
 from utils.system_api import get_ip_address, write_syslog
 
 VERSION="0.0.1"
-st.set_page_config(page_title="FXIJコンフィグツール", layout="wide")
+_favicon = Image.open(Path(__file__).parent.parent / "assets/favicon.ico")
+st.set_page_config(page_title="FXIJコンフィグツール", layout="wide", page_icon=_favicon)
 
 # Custom CSS to make disabled text areas look like normal text
 st.markdown(
@@ -47,7 +49,7 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.title("ログイン")
+    st.title("管理者ログイン")
     with st.form("login_form"):
         password = st.text_input("パスワードを入力してください", type="password", max_chars=16)
         submitted = st.form_submit_button("ログイン")
