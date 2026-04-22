@@ -8,7 +8,7 @@ def show():
     # Placeholder for RAID Settings logic
     st.subheader("RAIDディスク")
     disk_info_placeholder = st.empty()
-    disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+    disk_info_placeholder.code(get_disk_info(), language=None)
 
     st.write("") # Spacer
     
@@ -18,7 +18,7 @@ def show():
             if result == "Success":
                 st.success("マウントを解除しました。")
                 # Refresh disk info
-                disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+                disk_info_placeholder.code(get_disk_info(), language=None)
             else:
                 write_syslog(f"Unmount failed! Result: {result}")
                 st.error(f"マウント解除に失敗しました:\n{result}")
@@ -34,7 +34,7 @@ def show():
             if result == "Success":
                 st.success("マウントしました。")
                 # Refresh disk info
-                disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+                disk_info_placeholder.code(get_disk_info(), language=None)
             else:
                 write_syslog(f"Mount failed! Result: {result}")
                 st.error(f"マウントに失敗しました:\n{result}")
@@ -88,7 +88,7 @@ def show():
                         if result == "Success":
                             is_success = True
                             # Update disk info
-                            disk_info_placeholder.code(get_disk_info(exclude_patterns=["sda"]), language=None)
+                            disk_info_placeholder.code(get_disk_info(), language=None)
                             st.session_state.show_raid_confirm = False
                         else:
                             write_syslog(f"RAID Init failed! Result: {result}")

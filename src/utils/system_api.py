@@ -396,10 +396,24 @@ def get_disk_info(exclude_patterns=None):
         if lines:
             filtered_lines.append(lines[0]) # Header
             
+        ignoring = False
         for line in lines[1:]:
-            # Filter out lines containing any of the exclude patterns
-            if not any(pat in line for pat in exclude_patterns):
-                filtered_lines.append(line)
+            # lsblk outputs top-level devices starting with alphanumeric characters.
+            # Child devices start with spaces or tree characters.
+            if len(line) > 0 and line[0].isalnum():
+                if any(pat in line for pat in exclude_patterns):
+                    ignoring = True
+                else:
+                    ignoring = False
+            
+            if ignoring:
+                continue
+                
+            # If the current line itself matches the pattern (for non-top-level exclusions)
+            if any(pat in line for pat in exclude_patterns):
+                continue
+                
+            filtered_lines.append(line)
         
         return "\n".join(filtered_lines)
     return "Unknown"
