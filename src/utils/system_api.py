@@ -144,7 +144,7 @@ def get_hif_versions():
                         text=True,
                         check=False
                     )
-                    print("zzz ret code: ", result.returncode)
+                    print(f"hf_vers: {pdc_i}.{lb_i}.{hif_i} ret:",result.returncode)
                     if result.returncode == 0:
                         # Output example:
                         # f008: 09
@@ -153,6 +153,7 @@ def get_hif_versions():
                         # f00b: 20
                         # We want to form "20241009" (f00b + f00a + f009 + f008)
                         lines = result.stdout.strip().split('\n')
+                        print(f"hif_vers: {pdc_i}.{lb_i}.{hif_i} lines:", lines)
                         byte_values = []
                         for line in lines:
                             parts = line.split()
@@ -175,6 +176,53 @@ def get_hif_versions():
 
 
 import shlex
+
+MAX_LOG_BYTES = 10 * 1024 * 1024  # 10 MB
+
+def get_all_system_logs(password):
+    """Returns the full content of the system log file.
+    
+    If the log file exceeds 10 MB, only the most recent 10 MB is returned.
+    Returns a tuple of (content: str, truncated: bool).
+    """
+    log_file = "/var/mistral/log/mistlog.log"
+
+    # Check file size first
+    try:
+        size_result = subprocess.run(
+            ["sudo", "-S", "stat", "-c", "%s", log_file],
+            input=password + "\n",
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        file_size = int(size_result.stdout.strip()) if size_result.returncode == 0 else 0
+    except Exception:
+        file_size = 0
+
+    truncated = file_size > MAX_LOG_BYTES
+
+    if truncated:
+        # Read only the last 10 MB
+        command = ["sudo", "-S", "tail", "-c", str(MAX_LOG_BYTES), log_file]
+    else:
+        command = ["sudo", "-S", "cat", log_file]
+
+    try:
+        result = subprocess.run(
+            command,
+            input=password + "\n",
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.returncode == 0:
+            return result.stdout, truncated
+        else:
+            return f"Error reading log file:\n{result.stderr}", False
+    except Exception as e:
+        return f"An error occurred: {str(e)}", False
+
 
 def search_system_logs(query, password):
     """Searches system logs using grep with sudo. Supports AND (space) and OR (|) search."""
