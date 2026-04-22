@@ -48,8 +48,10 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state.authenticated:
     st.title("ログイン")
-    password = st.text_input("パスワードを入力してください", type="password", max_chars=16)
-    if st.button("ログイン"):
+    with st.form("login_form"):
+        password = st.text_input("パスワードを入力してください", type="password", max_chars=16)
+        submitted = st.form_submit_button("ログイン")
+    if submitted:
         if password == get_admin_password():
             st.session_state.authenticated = True
             st.rerun()
@@ -58,7 +60,7 @@ if not st.session_state.authenticated:
     st.stop()  # Stop rendering the rest of the app until authenticated
 
 # Sidebar Navigation
-logo_path = Path(__file__).parent / "assets/logo.jpg"
+logo_path = Path(__file__).parent.parent / "assets/logo.jpg"
 if logo_path.exists():
     st.sidebar.image(str(logo_path))
 
