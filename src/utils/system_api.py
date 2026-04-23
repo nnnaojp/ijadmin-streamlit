@@ -169,7 +169,8 @@ def get_hif_versions():
                 except Exception as e:
                     lb_versions.append(f"Exception: {str(e)}")
             if alive_lbs > 0:
-                all_versions.append(pdc_versions)
+                if lb_i == 1:
+                    all_versions.append(pdc_versions)
                 all_versions.append(lb_versions)
             
     return all_versions
@@ -381,6 +382,45 @@ def get_server_total_memory_gb():
     return 0
 
 
+def get_gpu_info():
+    """Retrieves GPU information using nvidia-smi."""
+    result = run_command(["nvidia-smi", "--query-gpu=name,driver_version,memory.total", "--format=csv,noheader,nounits"])
+    if isinstance(result, str):
+        return "nvidia-smi not available or no GPU found."
+
+    if result.returncode == 0:
+        lines = result.stdout.strip().split('\n')
+        headers = ["Name", "Driver", "Mem Total(MiB)"]
+        rows = []
+        for line in lines:
+            if line.strip():
+                rows.append([v.strip() for v in line.split(',')])
+
+        # Calculate column widths
+        col_widths = [len(h) for h in headers]
+        for row in rows:
+            for i, val in enumerate(row):
+                if i < len(col_widths):
+                    col_widths[i] = max(col_widths[i], len(val))
+
+        def format_row(row_data):
+            parts = []
+            for i, width in enumerate(col_widths):
+                val = row_data[i] if i < len(row_data) else ""
+                if i == 0:
+                    parts.append(f"{val:<{width}}")
+                else:
+                    parts.append(f"{val:>{width}}")
+            return "  ".join(parts)
+
+        output = [format_row(headers)]
+        for row in rows:
+            output.append(format_row(row))
+        return "\n".join(output)
+    else:
+        return "nvidia-smi not available or no GPU found."
+
+
 def get_disk_info(exclude_patterns=None):
     """Retrieves disk information using lsblk."""
     result = run_command(["lsblk", "-e", "7,11", "-o", "NAME,TYPE,SIZE,MOUNTPOINT"])
@@ -417,6 +457,44 @@ def get_disk_info(exclude_patterns=None):
         
         return "\n".join(filtered_lines)
     return "Unknown"
+
+
+def get_raid_disk_info():
+    """Returns lsblk output filtered to only show disks related to md127."""
+    result = run_command(["lsblk", "-e", "7,11", "-o", "NAME,TYPE,SIZE,MOUNTPOINT"])
+    if isinstance(result, str):
+        return "Unknown"
+    
+    if result.returncode != 0:
+        return "Unknown"
+
+    lines = result.stdout.splitlines()
+    if not lines:
+        return "Unknown"
+
+    header = lines[0]
+
+    # Split into blocks per top-level disk
+    blocks = []
+    current_block = []
+    for line in lines[1:]:
+        if len(line) > 0 and line[0].isalnum():
+            if current_block:
+                blocks.append(current_block)
+            current_block = [line]
+        else:
+            current_block.append(line)
+    if current_block:
+        blocks.append(current_block)
+
+    # Keep only blocks that contain md127 anywhere in the subtree
+    filtered_blocks = [block for block in blocks if any("md127" in l for l in block)]
+
+    result_lines = [header]
+    for block in filtered_blocks:
+        result_lines.extend(block)
+
+    return "\n".join(result_lines)
 
 
 def init_raid_sequence():

@@ -74,7 +74,7 @@ st.sidebar.write(f"IPアドレス： {get_ip_address()}")
 st.sidebar.title("Menu")
 
 page = st.sidebar.radio(
-    "Go to", ["サーバー情報", "サーバー設定", "サーバー時刻設定", "SSD RAID設定", 
+    "Go to", ["サーバー情報", "サーバー設定", "サーバー時刻設定", "RAID設定", 
     "ログ取得", "ログ検索", "印刷ページメモリ調整", "ソフトウェアアップデート",  "再起動/シャットダウン"]
 )
 
@@ -95,7 +95,7 @@ elif page == "サーバー設定":
     server_config.show()
 elif page == "サーバー時刻設定":
     datetime_view.show()
-elif page == "SSD RAID設定":
+elif page == "RAID設定":
     raid_config.show()
 elif page == "ログ取得":
     log.show()

@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.system_api import get_mistral_version, get_pdc_versions, get_hif_versions, get_cpu_info, get_memory_info, get_disk_info, write_syslog 
+from utils.system_api import get_mistral_version, get_pdc_versions, get_hif_versions, get_cpu_info, get_memory_info, get_disk_info, get_gpu_info, write_syslog 
 
 def show():
     write_syslog("starting server_info")
@@ -15,6 +15,9 @@ def show():
 
     st.subheader("ディスク")
     st.code(get_disk_info(), language=None)
+
+    st.subheader("GPU")
+    st.code(get_gpu_info(), language=None)
 
     col1, col2 = st.columns([0.85, 0.15])
     with col1:
