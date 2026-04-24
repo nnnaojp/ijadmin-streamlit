@@ -2,9 +2,9 @@ import streamlit as st
 from utils.system_api import reboot_system, shutdown_system, execute_sudo_command, write_syslog
 import time
 
-@st.dialog("再起動の確認")
+@st.dialog("サーバー再起動の確認")
 def confirm_reboot_dialog():
-    st.warning("本当にシステムを再起動しますか？")
+    st.warning("本当にサーバーを再起動しますか？")
     col_yes, col_no = st.columns(2)
     with col_yes:
         if st.button("はい", key="btn_reboot_yes"):
@@ -25,9 +25,9 @@ def confirm_reboot_dialog():
         if st.button("いいえ", key="btn_reboot_no"):
             st.rerun()
 
-@st.dialog("シャットダウンの確認")
+@st.dialog("サーバーシャットダウンの確認")
 def confirm_shutdown_dialog():
-    st.warning("本当にシステムをシャットダウンしますか？")
+    st.warning("本当にサーバーをシャットダウンしますか？")
     col_yes, col_no = st.columns(2)
     with col_yes:
         if st.button("はい", key="btn_shutdown_yes"):
@@ -78,11 +78,11 @@ def show():
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("再起動を実行", type="primary", use_container_width=True):
+        if st.button("サーバー再起動", type="primary", use_container_width=True):
             confirm_reboot_dialog()
             
     with col2:
-        if st.button("シャットダウンを実行", type="primary", use_container_width=True):
+        if st.button("サーバーシャットダウン", type="primary", use_container_width=True):
             confirm_shutdown_dialog()
 
     col3, col4 = st.columns(2)

@@ -1,0 +1,32 @@
+[Unit]
+Description=Streamlit ijconfig
+After=network.target
+
+[Service]
+Type=simple
+
+# 実行ユーザ（rootは非推奨）
+User=ijadmin
+Group=devp
+
+# 作業ディレクトリ
+WorkingDirectory=/home/ijadmin/ijconfig
+
+# 環境変数（重要）
+Environment=STREAMLIT_CONFIG_DIR=/home/ijadmin/ijconfig/.streamlit
+Environment=PYTHONUNBUFFERED=1
+
+# 実行コマンド
+ExecStart=/usr/local/bin/streamlit run main.py
+
+# 再起動制御
+Restart=always
+RestartSec=5
+
+# ログ
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
