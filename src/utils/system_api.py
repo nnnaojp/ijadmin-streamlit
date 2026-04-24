@@ -498,51 +498,106 @@ def get_raid_disk_info():
 
 
 def init_raid_sequence():
-    """Executes the RAID initialization sequence."""
-    commands = [
-        ["mdadm", "--stop", "/dev/md127"],
-        ["mdadm", "--stop", "/dev/md126"],
-        ["mdadm", "--zero-superblock", "/dev/sdb1"],
-        ["mdadm", "--zero-superblock", "/dev/sdc1"],
-        ["mdadm", "--zero-superblock", "/dev/sdd1"],
-        ["mdadm", "-C", "/dev/md127", "-l", "0", "-n", "3", "/dev/sdb1", "/dev/sdc1", "/dev/sdd1"],
-        
-        # mkfs.ext4 /dev/md127
-        # -F to force if needed? User didn't specify. Assuming clean.
+    """Executes the RAID initialization sequence.
+
+    1) アクティブなmdNを検出し、構成sdを把握してstop/zero-superblock
+    2) パーティションテーブルの消去 (wipefs, sgdisk)
+    3) RAID作成 (mdadm -C, mkfs.ext4, mount, update-initramfs)
+    """
+    import re
+    results = []
+    sd_devices = []  # mdNから動的に取得、なければデフォルト
+
+    # --- Step 1: アクティブなmdNを検出し停止 ---
+    try:
+        with open("/proc/mdstat", "r") as f:
+            mdstat_lines = f.readlines()
+
+        for line in mdstat_lines:
+            # 例: "md127 : active raid0 sdb[0] sdc[1] sdd[2]"
+            if not (line.startswith("md") and " : active" in line):
+                continue
+
+            parts = line.split()
+            md_name = parts[0]                        # e.g. "md127"
+            md_device = f"/dev/{md_name}"
+
+            # sd構成要素を抽出 (例: sdb[0] -> /dev/sdb)
+            members = []
+            for part in parts:
+                m = re.match(r'^([a-z]+(?:\d+)?)\[\d+\]', part)
+                if m:
+                    members.append(f"/dev/{m.group(1)}")
+
+            results.append(f"Info: {md_device} is active, members: {', '.join(members)}")
+
+            # mdを停止
+            res = execute_sudo_command(["mdadm", "--stop", md_device])
+            if res == "Success":
+                results.append(f"Success: mdadm --stop {md_device}")
+            else:
+                results.append(f"Warning: mdadm --stop {md_device} -> {res}")
+
+            # zero-superblock (警告扱い)
+            for dev in members:
+                res = execute_sudo_command(["mdadm", "--zero-superblock", dev])
+                if res == "Success":
+                    results.append(f"Success: mdadm --zero-superblock {dev}")
+                else:
+                    results.append(f"Warning: mdadm --zero-superblock {dev} -> {res}")
+
+            if members:
+                sd_devices = members
+
+    except Exception as e:
+        results.append(f"Warning: could not read /proc/mdstat -> {str(e)}")
+
+    # sd要素が取得できなかった場合はデフォルトを使用
+    if not sd_devices:
+        sd_devices = ["/dev/sdb", "/dev/sdc", "/dev/sdd"]
+        results.append(f"Info: no active md found, using default sd devices: {', '.join(sd_devices)}")
+
+    # --- Step 2: パーティションテーブルの消去 ---
+    for dev in sd_devices:
+        res = execute_sudo_command(["wipefs", "-a", dev])
+        if res == "Success":
+            results.append(f"Success: wipefs -a {dev}")
+        else:
+            results.append(f"Error: wipefs -a {dev} -> {res}")
+            return "\n".join(results)
+
+    for dev in sd_devices:
+        res = execute_sudo_command(["sgdisk", "--zap-all", dev])
+        if res == "Success":
+            results.append(f"Success: sgdisk --zap-all {dev}")
+        else:
+            results.append(f"Error: sgdisk --zap-all {dev} -> {res}")
+            return "\n".join(results)
+
+    # --- Step 3: RAID作成 ---
+    n = len(sd_devices)
+    create_cmd = ["mdadm", "-C", "/dev/md127", "-l", "0", "-n", str(n)] + sd_devices
+    res = execute_sudo_command(create_cmd)
+    cmd_str = " ".join(create_cmd)
+    if res == "Success":
+        results.append(f"Success: {cmd_str}")
+    else:
+        results.append(f"Error: {cmd_str} -> {res}")
+        return "\n".join(results)
+
+    for cmd in [
         ["mkfs.ext4", "/dev/md127"],
-        
         ["mount", "-o", "rw,remount", "/boot"],
         ["update-initramfs", "-u"],
-        # ["mount", "/dev/md127", "/mnt/ssd1"]
-    ]
-    
-    results = []
-    
-    for cmd in commands:
-        # Special handling for potentially non-critical commands?
-        # mdadm --stop might fail if not running, that's fine.
-        # zero-superblock might fail, fine.
-        
-        # We'll execute and log output.
-        # We iterate and return the first failure? Or try to continue?
-        # Usually RAID init should abort if Creation fails.
-        
+    ]:
         res = execute_sudo_command(cmd)
-        
-        # If mdadm --stop fails, it might just be "not found", which is OK.
-        # If initramfs fails, that's bad.
-        
         cmd_str = " ".join(cmd)
-        if res != "Success":
-            # Allow some failures?
-            if "mdadm --stop" in cmd_str or "zero-superblock" in cmd_str:
-                results.append(f"Warning: {cmd_str} -> {res}")
-            else:
-                results.append(f"Error: {cmd_str} -> {res}")
-                return "\n".join(results) # Abort on error for critical steps
-        else:
+        if res == "Success":
             results.append(f"Success: {cmd_str}")
-            
+        else:
+            results.append(f"Error: {cmd_str} -> {res}")
+            return "\n".join(results)
+
     return "Success"
 
 def unmount_raid_volume():
