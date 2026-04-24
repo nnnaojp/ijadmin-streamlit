@@ -1,11 +1,19 @@
 import streamlit as st
-from utils.system_api import get_disk_info, get_raid_disk_info, init_raid_sequence, unmount_raid_volume, mount_raid_volume, write_syslog
+from utils.system_api import get_disk_info, get_raid_disk_info, get_os_disk_info, init_raid_sequence, unmount_raid_volume, mount_raid_volume, write_syslog
 
 def show():
     write_syslog("starting raid_config")
     st.title("RAID設定")
     st.write("RAID設定画面です。")
-    # Placeholder for RAID Settings logic
+    # OSディスク情報
+    st.subheader("OSディスク")
+    os_disk, os_disk_display = get_os_disk_info()
+    st.session_state.os_disk = os_disk  # init_raid_sequence()に渡すため保存
+    st.code(os_disk_display, language=None)
+
+    st.write("") # Spacer
+
+    # RAIDディスク情報
     st.subheader("RAIDディスク")
     disk_info_placeholder = st.empty()
     disk_info_placeholder.code(get_raid_disk_info(), language=None)
@@ -81,7 +89,7 @@ def show():
                 with st.spinner("RAID初期化を実行中..."):
                     # Force a small sleep or yield if needed for UI update? Streamlit usually handles this.
                     try:
-                        result = init_raid_sequence()
+                        result = init_raid_sequence(os_disk=st.session_state.get("os_disk"))
                     
                         st.session_state.raid_initializing = False
                         

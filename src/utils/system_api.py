@@ -1,6 +1,5 @@
 import subprocess
 
-
 def run_command(command, encoding="utf-8"):
     """Runs a system command and returns the result."""
     try:
@@ -497,14 +496,81 @@ def get_raid_disk_info():
     return "\n".join(result_lines)
 
 
-def init_raid_sequence():
+def get_os_disk_info():
+    """Returns a tuple of (os_disk_name, display_text) for the OS disk (the disk mounted at /).
+
+    Returns:
+        tuple: (
+            os_disk_name (str | None): e.g. "/dev/sdb", or None if not detected,
+            display_text (str): lsblk output for the OS disk, for display purposes
+        )
+    """
+    import re as _re
+    # /proc/mounts からOSディスク名を特定
+    os_disk_name = None
+    try:
+        with open("/proc/mounts", "r") as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) >= 2 and parts[1] == "/":
+                    m = _re.match(r'^/dev/(sd[a-z]+)', parts[0])
+                    if m:
+                        os_disk_name = m.group(1)
+                        break
+    except Exception:
+        pass
+
+    if not os_disk_name:
+        return None, "OSディスクを特定できませんでした"
+
+    result = run_command(["lsblk", "-e", "7,11", "-o", "NAME,TYPE,SIZE,MOUNTPOINT"])
+    if isinstance(result, str):
+        return os_disk_name, "Unknown"
+    if result.returncode != 0:
+        return os_disk_name, "Unknown"
+
+    lines = result.stdout.splitlines()
+    if not lines:
+        return os_disk_name, "Unknown"
+
+    header = lines[0]
+
+    # Split into blocks per top-level disk
+    blocks = []
+    current_block = []
+    for line in lines[1:]:
+        if len(line) > 0 and line[0].isalnum():
+            if current_block:
+                blocks.append(current_block)
+            current_block = [line]
+        else:
+            current_block.append(line)
+    if current_block:
+        blocks.append(current_block)
+
+    # OSディスクのブロックのみ抽出 (例: os_disk_name="sdb" でblock[0]が"sdb"で始まるもの)
+    filtered_blocks = [block for block in blocks if block and block[0].startswith(os_disk_name)]
+
+    result_lines = [header]
+    for block in filtered_blocks:
+        result_lines.extend(block)
+
+    display_text = "\n".join(result_lines)
+    return f"/dev/{os_disk_name}", display_text
+
+
+def init_raid_sequence(os_disk: str):
     """Executes the RAID initialization sequence.
+
+    Args:
+        os_disk: OSディスクのパス (例: "/dev/sdb")。get_os_disk_info()の戻り値①を渡すこと。
 
     1) アクティブなmdNを検出し、構成sdを把握してstop/zero-superblock
     2) パーティションテーブルの消去 (wipefs, sgdisk)
     3) RAID作成 (mdadm -C, mkfs.ext4, mount, update-initramfs)
     """
-    import re
+    import re, glob
+    write_syslog(f"init_raid_sequence strated. os_disk={os_disk}")
     results = []
     sd_devices = []  # mdNから動的に取得、なければデフォルト
 
@@ -532,6 +598,7 @@ def init_raid_sequence():
             results.append(f"Info: {md_device} is active, members: {', '.join(members)}")
 
             # mdを停止
+            write_syslog(f"mdadm --stop...")
             res = execute_sudo_command(["mdadm", "--stop", md_device])
             if res == "Success":
                 results.append(f"Success: mdadm --stop {md_device}")
@@ -539,6 +606,7 @@ def init_raid_sequence():
                 results.append(f"Warning: mdadm --stop {md_device} -> {res}")
 
             # zero-superblock (警告扱い)
+            write_syslog(f"mdadm --zero-superblock...")
             for dev in members:
                 res = execute_sudo_command(["mdadm", "--zero-superblock", dev])
                 if res == "Success":
@@ -552,12 +620,36 @@ def init_raid_sequence():
     except Exception as e:
         results.append(f"Warning: could not read /proc/mdstat -> {str(e)}")
 
-    # sd要素が取得できなかった場合はデフォルトを使用
+    # sd要素が取得できなかった場合は、マウントされていない /dev/sdN を動的に取得
     if not sd_devices:
-        sd_devices = ["/dev/sdb", "/dev/sdc", "/dev/sdd"]
-        results.append(f"Info: no active md found, using default sd devices: {', '.join(sd_devices)}")
+        try:
+            # マウント済みデバイスを取得
+            mounted = set()
+            with open("/proc/mounts", "r") as f:
+                for line in f:
+                    parts = line.split()
+                    if parts:
+                        mounted.add(parts[0])
+
+            results.append(f"Info: OS disk: {os_disk}")
+
+            # /dev/sd? を列挙し、マウントされておらずOSディスクでないものを選択
+            all_sd = sorted(glob.glob("/dev/sd[a-z]") + glob.glob("/dev/sd[a-z][a-z]"))
+            sd_devices = [
+                dev for dev in all_sd
+                if dev not in mounted and dev != os_disk
+            ]
+            results.append(f"Info: no active md found, detected unmounted sd devices: {', '.join(sd_devices) if sd_devices else 'none'}")
+        except Exception as e:
+            results.append(f"Warning: could not detect unmounted sd devices -> {str(e)}")
+
+    # --- sd_devices バリデーション ---
+    if len(sd_devices) != 3:
+        results.append(f"Error: RAID requires exactly 3 sd devices, but found {len(sd_devices)}: {', '.join(sd_devices) if sd_devices else 'none'}")
+        return "\n".join(results)
 
     # --- Step 2: パーティションテーブルの消去 ---
+    write_syslog(f"wipefs...")
     for dev in sd_devices:
         res = execute_sudo_command(["wipefs", "-a", dev])
         if res == "Success":
@@ -566,6 +658,7 @@ def init_raid_sequence():
             results.append(f"Error: wipefs -a {dev} -> {res}")
             return "\n".join(results)
 
+    write_syslog(f"sgdisk...")
     for dev in sd_devices:
         res = execute_sudo_command(["sgdisk", "--zap-all", dev])
         if res == "Success":
@@ -575,6 +668,7 @@ def init_raid_sequence():
             return "\n".join(results)
 
     # --- Step 3: RAID作成 ---
+    write_syslog(f"mdadm -C...")
     n = len(sd_devices)
     create_cmd = ["mdadm", "-C", "/dev/md127", "-l", "0", "-n", str(n)] + sd_devices
     res = execute_sudo_command(create_cmd)
@@ -585,6 +679,7 @@ def init_raid_sequence():
         results.append(f"Error: {cmd_str} -> {res}")
         return "\n".join(results)
 
+    write_syslog(f"mkfs...")
     for cmd in [
         ["mkfs.ext4", "/dev/md127"],
         ["mount", "-o", "rw,remount", "/boot"],
