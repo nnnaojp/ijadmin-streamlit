@@ -23,14 +23,13 @@ error()   { echo -e "\e[31m[ERROR]\e[0m $*" >&2; }
 
 # --- root確認 ---
 if [[ $EUID -ne 0 ]]; then
-    error "このスクリプトはroot権限で実行してください"
-    error "  sudo $0"
+    error "This script must be run as root."
     exit 1
 fi
 
 # --- インストール先ディレクトリの確認 ---
 if [[ ! -d "${BASE_DIR}/${INSTALL_DIR}" ]]; then
-    error "インストール先ディレクトリが存在しません: ${BASE_DIR}/${INSTALL_DIR}"
+    error "Installation directory not found. ${BASE_DIR}/${INSTALL_DIR}"
     exit 1
 fi
 

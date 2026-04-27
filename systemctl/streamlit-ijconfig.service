@@ -10,10 +10,10 @@ User=ijadmin
 Group=devp
 
 # 作業ディレクトリ
-WorkingDirectory=/home/ijadmin/ijconfig
+WorkingDirectory=/usr/mistral/ijconfig-ui
 
 # 環境変数（重要）
-Environment=STREAMLIT_CONFIG_DIR=/home/ijadmin/ijconfig/.streamlit
+Environment=STREAMLIT_CONFIG_DIR=/usr/mistral/ijconfig-ui/.streamlit
 Environment=PYTHONUNBUFFERED=1
 
 # 実行コマンド
