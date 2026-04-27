@@ -6,7 +6,7 @@ import base64
 from pathlib import Path
 from utils.system_api import get_ip_address
 
-_favicon = Image.open(Path(__file__).parent.parent.parent / "assets/favicon.ico")
+_favicon = Image.open(Path(__file__).parent.parent / "assets/favicon.ico")
 st.set_page_config(page_title="FXIJコンフィグツール ヘルプ", layout="wide", page_icon=_favicon)
 
 def get_base64_image(image_path):
@@ -58,7 +58,7 @@ def render_help():
     )
 
     # Sidebar Logo and Info
-    logo_path = Path(__file__).parent.parent.parent / "assets/logo.jpg"
+    logo_path = Path(__file__).parent.parent / "assets/logo.jpg"
     if logo_path.exists():
         st.sidebar.image(str(logo_path))
 
@@ -78,7 +78,7 @@ def render_help():
     #st.title("操作ヘルプ")
     
     # Locate Markdown manual
-    md_path = Path(__file__).parent.parent.parent / "assets/manual.md"
+    md_path = Path(__file__).parent.parent / "assets/manual.md"
     
     if not md_path.exists():
         st.error(f"マニュアルファイルが見つかりません: {md_path.absolute()}")

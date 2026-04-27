@@ -5,7 +5,7 @@ from pathlib import Path
 from utils.system_api import get_ip_address, write_syslog, execute_sudo_command
 
 VERSION="0.0.1"
-_favicon = Image.open(Path(__file__).parent.parent / "assets/favicon.ico")
+_favicon = Image.open(Path(__file__).parent / "assets/favicon.ico")
 st.set_page_config(page_title="FXIJコンフィグツール", layout="wide", page_icon=_favicon)
 
 # Custom CSS to make disabled text areas look like normal text
@@ -66,7 +66,7 @@ if not st.session_state.authenticated:
     st.stop()  # Stop rendering the rest of the app until authenticated
 
 # Sidebar Navigation
-logo_path = Path(__file__).parent.parent / "assets/logo.jpg"
+logo_path = Path(__file__).parent / "assets/logo.jpg"
 if logo_path.exists():
     st.sidebar.image(str(logo_path))
 
