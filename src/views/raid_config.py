@@ -1,23 +1,23 @@
 import streamlit as st
-from utils.system_api import get_disk_info, get_raid_disk_info, get_os_disk_info, init_raid_sequence, unmount_raid_volume, mount_raid_volume, write_syslog
+from utils.system_api import get_disk_info,get_raid_disk_info, get_os_disk_info, init_raid_sequence, unmount_raid_volume, mount_raid_volume, write_syslog
 
 def show():
     write_syslog("starting raid_config")
     st.title("RAID設定")
     st.write("RAID設定画面です。")
     # OSディスク情報
-    st.subheader("OSディスク")
+    st.subheader("システムディスク")
     os_disk, os_disk_display = get_os_disk_info()
     st.session_state.os_disk = os_disk  # init_raid_sequence()に渡すため保存
     st.code(os_disk_display, language=None)
-
+    print(f"os_disk: {os_disk}")
     st.write("") # Spacer
 
     # RAIDディスク情報
     st.subheader("RAIDディスク")
     disk_info_placeholder = st.empty()
-    disk_info_placeholder.code(get_raid_disk_info(), language=None)
-
+    # disk_info_placeholder.code(get_disk_info(except_disk=os_disk), language=None)
+    disk_info_placeholder.code(get_disk_info(except_disk=st.session_state.get("os_disk")), language=None)
     st.write("") # Spacer
     
     if st.button("マウント解除"):
@@ -42,7 +42,8 @@ def show():
             if result == "Success":
                 st.success("マウントしました。")
                 # Refresh disk info
-                disk_info_placeholder.code(get_raid_disk_info(), language=None)
+                # disk_info_placeholder.code(get_raid_disk_info(), language=None)
+                disk_info_placeholder.code(get_disk_info(except_disk=st.session_state.get("os_disk")), language=None)
             else:
                 write_syslog(f"Mount failed! Result: {result}")
                 st.error(f"マウントに失敗しました:\n{result}")
@@ -96,7 +97,7 @@ def show():
                         if result == "Success":
                             is_success = True
                             # Update disk info
-                            disk_info_placeholder.code(get_raid_disk_info(), language=None)
+                            disk_info_placeholder.code(get_disk_info(except_disk=st.session_state.get("os_disk")), language=None)
                             st.session_state.show_raid_confirm = False
                         else:
                             write_syslog(f"RAID Init failed! Result: {result}")

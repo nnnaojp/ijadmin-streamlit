@@ -143,7 +143,7 @@ def get_hif_versions():
                         text=True,
                         check=False
                     )
-                    print(f"hf_vers: {pdc_i}.{lb_i}.{hif_i} ret:",result.returncode)
+                    # print(f"hf_vers: {pdc_i}.{lb_i}.{hif_i} ret:",result.returncode)
                     if result.returncode == 0:
                         # Output example:
                         # f008: 09
@@ -152,7 +152,7 @@ def get_hif_versions():
                         # f00b: 20
                         # We want to form "20241009" (f00b + f00a + f009 + f008)
                         lines = result.stdout.strip().split('\n')
-                        print(f"hif_vers: {pdc_i}.{lb_i}.{hif_i} lines:", lines)
+                        # print(f"hif_vers: {pdc_i}.{lb_i}.{hif_i} lines:", lines)
                         byte_values = []
                         for line in lines:
                             parts = line.split()
@@ -420,42 +420,46 @@ def get_gpu_info():
         return "no GPU found."
 
 
-def get_disk_info(exclude_patterns=None):
+def get_disk_info(except_disk=None):
     """Retrieves disk information using lsblk."""
     result = run_command(["lsblk", "-e", "7,11", "-o", "NAME,TYPE,SIZE,MOUNTPOINT"])
     if isinstance(result, str):
         return "Unknown"
     
-    if result.returncode == 0:
-        if not exclude_patterns:
-            return result.stdout
-            
-        lines = result.stdout.splitlines()
-        filtered_lines = []
-        if lines:
-            filtered_lines.append(lines[0]) # Header
-            
-        ignoring = False
-        for line in lines[1:]:
-            # lsblk outputs top-level devices starting with alphanumeric characters.
-            # Child devices start with spaces or tree characters.
-            if len(line) > 0 and line[0].isalnum():
-                if any(pat in line for pat in exclude_patterns):
-                    ignoring = True
-                else:
-                    ignoring = False
-            
-            if ignoring:
-                continue
-                
-            # If the current line itself matches the pattern (for non-top-level exclusions)
-            if any(pat in line for pat in exclude_patterns):
-                continue
-                
-            filtered_lines.append(line)
-        
-        return "\n".join(filtered_lines)
-    return "Unknown"
+    if result.returncode != 0:
+        return "Unknown"
+
+    if not except_disk:
+        return result.stdout
+
+    lines = result.stdout.splitlines()
+    if not lines:
+        return "Unknown"
+
+    header = lines[0]
+    
+    blocks = []
+    current_block = []
+    for line in lines[1:]:
+        if len(line) > 0 and line[0].isalnum():
+            if current_block:
+                blocks.append(current_block)
+            current_block = [line]
+        else:
+            current_block.append(line)
+    if current_block:
+        blocks.append(current_block)
+
+    import os
+    except_name = os.path.basename(except_disk) if except_disk else ""
+
+    filtered_blocks = [block for block in blocks if not (block and except_name and block[0].startswith(except_name))]
+
+    result_lines = [header]
+    for block in filtered_blocks:
+        result_lines.extend(block)
+
+    return "\n".join(result_lines)
 
 
 def get_raid_disk_info():
@@ -520,6 +524,8 @@ def get_os_disk_info():
     except Exception:
         pass
 
+    print(f"os_disk_name={os_disk_name}")
+
     if not os_disk_name:
         return None, "OSディスクを特定できませんでした"
 
@@ -547,7 +553,9 @@ def get_os_disk_info():
             current_block.append(line)
     if current_block:
         blocks.append(current_block)
-
+    
+    print(f"current_block={current_block}")
+    
     # OSディスクのブロックのみ抽出 (例: os_disk_name="sdb" でblock[0]が"sdb"で始まるもの)
     filtered_blocks = [block for block in blocks if block and block[0].startswith(os_disk_name)]
 
