@@ -11,7 +11,7 @@ gatherUsageStats = false
 showSidebarNavigation = false
 
 [system]
-sudo_password="gaki0101"
+sudo_password="ijadmin"
 admin_password="ijadmin"
 
 [theme]

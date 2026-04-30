@@ -417,7 +417,7 @@ def get_gpu_info():
             output.append(format_row(row))
         return "\n".join(output)
     else:
-        return "nvidia-smi not available or no GPU found."
+        return "no GPU found."
 
 
 def get_disk_info(exclude_patterns=None):
@@ -796,7 +796,7 @@ def write_syslog(message, priority=None):
     
     if not _syslog_initialized:
         print("syslog initialized")
-        syslog.openlog(ident="ijadmin-ui", logoption=syslog.LOG_PID, facility=syslog.LOG_LOCAL0)
+        syslog.openlog(ident="ijconfig-ui", logoption=syslog.LOG_PID, facility=syslog.LOG_LOCAL0)
         _syslog_initialized = True
         
     if priority is None:

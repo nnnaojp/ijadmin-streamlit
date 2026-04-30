@@ -27,6 +27,7 @@ python3 -m compileall -b "${DIST_DIR}"
 find "$DIST_DIR" -name "*.py" -delete
 cp "$SRC_DIR"/main.py "$DIST_DIR"
 cp "$SRC_DIR"/pages/help.py "$DIST_DIR"/pages
-cp -rp .streamlit "$DIST_DIR"
+mkdir "$DIST_DIR"/.streamlit
+cp -rp dot.streamlit/* "$DIST_DIR"/.streamlit
 info "      done → ${DIST_DIR}"
 

@@ -13,11 +13,11 @@ def show():
     st.subheader("メモリ")
     st.code(get_memory_info(), language=None)
 
-    st.subheader("ディスク")
-    st.code(get_disk_info(), language=None)
-
     st.subheader("GPU")
     st.code(get_gpu_info(), language=None)
+
+    st.subheader("ディスク")
+    st.code(get_disk_info(), language=None)
 
     col1, col2 = st.columns([0.85, 0.15])
     with col1:

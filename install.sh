@@ -28,18 +28,19 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # --- インストール先ディレクトリの確認 ---
-if [[ ! -d "${BASE_DIR}/${INSTALL_DIR}" ]]; then
-    error "Installation directory not found. ${BASE_DIR}/${INSTALL_DIR}"
-    exit 1
-fi
+# if [[ ! -d "${BASE_DIR}/${INSTALL_DIR}" ]]; then
+#     error "Installation directory not found. ${BASE_DIR}/${INSTALL_DIR}"
+#     exit 1
+# fi
 
 # ============================================================
 
 # --- Step 1: インストールディレクトリのクリア & コピー ---
-info "[1/1] Installing files..."
-rm -rf /usr/mistral/ijconfig-ui/*
-cp -rp "${DIST_DIR}"/* "${BASE_DIR}/${INSTALL_DIR}"
-cp -rp "${DIST_DIR}"/.streamlit "${BASE_DIR}/${INSTALL_DIR}"
+info "[1/2] Clearing files..."
+rm -rf /usr/mistral/ijconfig-ui
+# rm -rf /usr/mistral/ijconfig-ui/*
+info "[2/2] Installing files..."
+cp -rp "${DIST_DIR}" "${BASE_DIR}/${INSTALL_DIR}"
 chown -R ${APP_USER}:${APP_GROUP} "${BASE_DIR}/${INSTALL_DIR}"
 info "      done → ${BASE_DIR}/${INSTALL_DIR}"
 
