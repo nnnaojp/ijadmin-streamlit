@@ -6,9 +6,63 @@ import config_gens.tiff2lb_json as tiff2lb_json
 import config_gens.fxijconfig as fxijconfig
 import config_gens.dnc_json as dnc_json
 
+def update_current_config(config_data):
+    """Updates PrintDirection and IPAddress of the current mistral.json"""
+    config_path = "/usr/mistral/conf/mistral.json"
+    if not os.path.exists(config_path):
+        print("mistral.json not found.")
+        return False
+        
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        pd_val = 0 if config_data.get("print_direction") == "正方向" else 1
+        
+        if "System" in data and "InkjetHead" in data["System"]:
+            for head in data["System"]["InkjetHead"]:
+                head["PrintDirection"] = pd_val
+                
+        new_ips = config_data.get("ips", [])
+        if "Server" in data:
+            for i, server in enumerate(data["Server"]):
+                if i < len(new_ips) and new_ips[i]:
+                    server["IPAddress"] = new_ips[i]
+                    
+        tmp_path = "/tmp/mistral.json.tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            
+        import subprocess
+        password = get_sudo_password()
+        if not password:
+            print("Error: No sudo password available for file copy.")
+            return False
+            
+        command = ["sudo", "-S", "cp", tmp_path, config_path]
+        result = subprocess.run(
+            command,
+            input=password + "\n",
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.returncode != 0:
+            print(f"Error copying {tmp_path} to {config_path}: {result.stderr}")
+            return False
+        return True
+        
+    except Exception as e:
+        print(f"Error updating mistral.json: {e}")
+        return False
+
+
 def save_config(config_data, config_index):
     """Saves configuration data (placeholder)."""
     # In a real app, this would write to a file or database
+    if config_index == -1:
+        return update_current_config(config_data)
+
     generator = [
         fxijconfig.setup1_Type500_RC1536_40mpm,
         fxijconfig.setup2_Type500_RC1536x2_40mpm,

@@ -16,9 +16,9 @@ def show():
     st.code(str(current_config), language=None)
 
     # Head Configuration
-    # Head Configuration
     st.subheader("ヘッド構成")
     options = [
+        "[0] 現在の構成",
         "[1] FXIJ type 500 (W:RC1536,40mpm)",
         "[2] FXIJ type 500 (W:RC1536x2,40mpm)",
         "[3] FXIJ type 500 (W:SambaG5Lx2,40mpm)",
@@ -35,21 +35,55 @@ def show():
     except ValueError:
         head_config_index = 0
 
-    # Print Direction
-    print_direction = st.radio("ヘッド印刷向き", ["正方向", "逆方向"])
+    import json
+    import os
+    current_mistral_json = {}
+    mistral_conf_path = "/usr/mistral/conf/mistral.json"
+    if head_config_index == 0 and os.path.exists(mistral_conf_path):
+        try:
+            with open(mistral_conf_path, "r", encoding="utf-8") as f:
+                current_mistral_json = json.load(f)
+        except Exception as e:
+            write_syslog(f"Failed to read mistral.json: {e}")
 
-    req_servers_map = {0: 1, 1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3}
-    num_servers = req_servers_map.get(head_config_index, 4)
+    # Print Direction
+    default_print_direction = 0
+    if head_config_index == 0 and "System" in current_mistral_json:
+        try:
+            pd = current_mistral_json["System"]["InkjetHead"][0]["PrintDirection"]
+            if pd == 1:
+                default_print_direction = 1
+        except (KeyError, IndexError, TypeError):
+            pass
+
+    # Print Direction
+    print_direction = st.radio("ヘッド印刷向き", ["正方向", "逆方向"], index=default_print_direction)
+
+    req_servers_map = {1: 1, 2: 1, 3: 1, 4: 2, 5: 2, 6: 2, 7: 3}
+    if head_config_index == 0:
+        if "System" in current_mistral_json and "nServer" in current_mistral_json["System"]:
+            num_servers = current_mistral_json["System"]["nServer"]
+        else:
+            num_servers = 4
+    else:
+        num_servers = req_servers_map.get(head_config_index, 4)
+
+    default_ips = ["192.168.151.100", "192.168.151.101", "192.168.151.102", "192.168.151.103"]
+    if head_config_index == 0 and "Server" in current_mistral_json:
+        servers = current_mistral_json["Server"]
+        for i in range(min(4, len(servers))):
+            if "IPAddress" in servers[i]:
+                default_ips[i] = servers[i]["IPAddress"]
 
     # Server IP Addresses
     st.subheader("サーバーIPアドレス")
     col1, col2 = st.columns(2)
     with col1:
-        ip1 = st.text_input("サーバー１のIPアドレス", value="192.168.151.100", disabled=(num_servers < 1))
-        ip3 = st.text_input("サーバー３のIPアドレス", value="192.168.151.102", disabled=(num_servers < 3))
+        ip1 = st.text_input("サーバー１のIPアドレス", value=default_ips[0], disabled=(num_servers < 1))
+        ip3 = st.text_input("サーバー３のIPアドレス", value=default_ips[2], disabled=(num_servers < 3))
     with col2:
-        ip2 = st.text_input("サーバー２のIPアドレス", value="192.168.151.101", disabled=(num_servers < 2))
-        ip4 = st.text_input("サーバー４のIPアドレス", value="192.168.151.103", disabled=(num_servers < 4))
+        ip2 = st.text_input("サーバー２のIPアドレス", value=default_ips[1], disabled=(num_servers < 2))
+        ip4 = st.text_input("サーバー４のIPアドレス", value=default_ips[3], disabled=(num_servers < 4))
 
     # Buttons
     # Check for update result message from previous run
@@ -90,7 +124,7 @@ def show():
                 "print_direction": print_direction,
                 "ips": [ip1, ip2, ip3, ip4]
             }
-            st.session_state.pending_head_config_index = head_config_index
+            st.session_state.pending_head_config_index = head_config_index - 1
 
     if st.session_state.confirm_update_config:
         st.warning("設定を更新しますか？")
