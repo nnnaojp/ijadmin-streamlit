@@ -2,25 +2,7 @@ import streamlit as st
 from utils.config_manager import save_config, load_config
 from utils.system_api import write_syslog, import_settings_package
 
-@st.dialog("設定更新の確認")
-def confirm_update_dialog(config_data, head_config_index):
-    # st.write(config_data, head_config_index)
-    st.write("設定を更新しますか？")
-    col_yes, col_no = st.columns(2)
-    with col_yes:
-        if st.button("はい"):
-            try:
-                if save_config(config_data,head_config_index):
-                    st.session_state.update_msg = ("success", f"設定を更新しました (ヘッド構成: {config_data['head_config']})")
-                else:
-                    st.session_state.update_msg = ("error", "設定の更新に失敗しました")
-            except Exception as e:
-                write_syslog(f"Config update failed! Error: {e}")
-                st.session_state.update_msg = ("error", f"実行時エラーが発生しました: {e}")
-            st.rerun()
-    with col_no:
-        if st.button("いいえ"):
-            st.rerun()
+
 
 
 def show():
@@ -79,13 +61,59 @@ def show():
             st.error(msg_text)
         del st.session_state.update_msg
 
+    if "confirm_update_config" not in st.session_state:
+        st.session_state.confirm_update_config = False
+
     if st.button("設定を更新"):
-        config_data = {
-            "head_config": head_config,
-            "print_direction": print_direction,
-            "ips": [ip1, ip2, ip3, ip4]
-        }
-        confirm_update_dialog(config_data, head_config_index)
+        import ipaddress
+        invalid_ips = []
+        active_ips = [
+            ("サーバー１", ip1, num_servers >= 1),
+            ("サーバー２", ip2, num_servers >= 2),
+            ("サーバー３", ip3, num_servers >= 3),
+            ("サーバー４", ip4, num_servers >= 4)
+        ]
+        
+        for name, ip, is_active in active_ips:
+            if is_active:
+                try:
+                    ipaddress.ip_address(ip)
+                except ValueError:
+                    invalid_ips.append(name)
+        
+        if invalid_ips:
+            st.error(f"IPアドレスのフォーマットが不正です: {', '.join(invalid_ips)}")
+        else:
+            st.session_state.confirm_update_config = True
+            st.session_state.pending_config_data = {
+                "head_config": head_config,
+                "print_direction": print_direction,
+                "ips": [ip1, ip2, ip3, ip4]
+            }
+            st.session_state.pending_head_config_index = head_config_index
+
+    if st.session_state.confirm_update_config:
+        st.warning("設定を更新しますか？")
+        col_yes, col_no = st.columns(2)
+        with col_yes:
+            if st.button("はい", key="confirm_update_yes"):
+                config_data = st.session_state.pending_config_data
+                h_index = st.session_state.pending_head_config_index
+                try:
+                    if save_config(config_data, h_index):
+                        st.session_state.update_msg = ("success", f"設定を更新しました (ヘッド構成: {config_data['head_config']})")
+                    else:
+                        st.session_state.update_msg = ("error", "設定の更新に失敗しました")
+                except Exception as e:
+                    write_syslog(f"Config update failed! Error: {e}")
+                    st.session_state.update_msg = ("error", f"実行時エラーが発生しました: {e}")
+                
+                st.session_state.confirm_update_config = False
+                st.rerun()
+        with col_no:
+            if st.button("いいえ", key="confirm_update_no"):
+                st.session_state.confirm_update_config = False
+                st.rerun()
 
     if "show_import_uploader" not in st.session_state:
         st.session_state.show_import_uploader = False
