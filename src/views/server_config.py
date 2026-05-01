@@ -158,20 +158,27 @@ def show():
     if st.session_state.show_import_uploader:
         uploaded_file = st.file_uploader("設定ファイル(tgz)を選択してください", type="tgz")
         if uploaded_file is not None:
-             # Save to /tmp
-            import os
-            import tempfile
-            _, ext = os.path.splitext(uploaded_file.name)
-            with tempfile.NamedTemporaryFile(dir="/tmp", suffix=ext, prefix="upload_", delete=False) as tf:
-                tf.write(uploaded_file.getbuffer())
-                temp_path = tf.name
+            st.warning(f"「{uploaded_file.name}」をインポートして設定を更新しますか？")
+            col_yes, col_no = st.columns(2)
+            with col_yes:
+                if st.button("はい", key="confirm_import_yes"):
+                    import os
+                    import tempfile
+                    _, ext = os.path.splitext(uploaded_file.name)
+                    with tempfile.NamedTemporaryFile(dir="/tmp", suffix=ext, prefix="upload_", delete=False) as tf:
+                        tf.write(uploaded_file.getbuffer())
+                        temp_path = tf.name
 
-            with st.spinner("設定をインポート中..."):
-                result = import_settings_package(temp_path)
-            
-            if result == "Success":
-                st.success("設定のインポートが完了しました。")
-                st.session_state.show_import_uploader = False
-                # Ideally refresh the page or config to show new values
-            else:
-                st.error(f"設定のインポートに失敗しました:\n{result}")
+                    with st.spinner("設定をインポート中..."):
+                        result = import_settings_package(temp_path)
+                    
+                    if result == "Success":
+                        st.session_state.update_msg = ("success", "設定のインポートが完了しました。")
+                        st.session_state.show_import_uploader = False
+                    else:
+                        st.session_state.update_msg = ("error", f"設定のインポートに失敗しました:\n{result}")
+                    st.rerun()
+            with col_no:
+                if st.button("いいえ", key="confirm_import_no"):
+                    st.session_state.show_import_uploader = False
+                    st.rerun()
