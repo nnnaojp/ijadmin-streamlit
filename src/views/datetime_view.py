@@ -17,11 +17,10 @@ def show():
     js_code = """(function() {
         const d = new Date();
         const pad = (n) => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    })();"""
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; 
+   })();"""
 
     client_time_str = st_javascript(js_code, key=f"client_time_{st.session_state.dt_view_key}")
-
     col_h1, col_h2 = st.columns([3, 1])
     with col_h1:
         st.subheader("現在の日時")

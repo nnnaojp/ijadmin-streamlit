@@ -20,7 +20,7 @@ def show():
         except (ValueError, TypeError):
             cma_mem = -1
 
-        expected_cma = 20 if server_mem >= 16 else 10
+        expected_cma = 20 if server_mem > 16 else 10
         is_ok = (cma_mem == expected_cma)
 
         with mem_info_placeholder.container():
