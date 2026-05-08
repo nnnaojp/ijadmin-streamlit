@@ -384,6 +384,7 @@ def get_server_total_memory_gb():
 def get_gpu_info():
     """Retrieves GPU information using nvidia-smi."""
     result = run_command(["nvidia-smi", "--query-gpu=name,driver_version,memory.total", "--format=csv,noheader,nounits"])
+    #result = run_command(["echo", "Quadro RTX 4000, 515.43.04, 8192"]) #for DEBUG
     if isinstance(result, str):
         return "nvidia-smi not available or no GPU found."
 

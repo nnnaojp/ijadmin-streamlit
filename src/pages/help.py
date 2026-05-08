@@ -73,7 +73,7 @@ def render_help():
     if nav == "Main":
         st.switch_page("main.py")
 
-    st.sidebar.caption("Version: 0.0.1")
+    st.sidebar.caption("Version: 0.1.00")
 
     #st.title("操作ヘルプ")
     
@@ -88,8 +88,30 @@ def render_help():
         with open(md_path, "r", encoding="utf-8") as f:
             md_content = f.read()
 
+        # Markdown内のローカル画像(相対パス)をBase64 Data URIに変換する
+        def replace_img_with_base64(match):
+            alt_text = match.group(1)
+            img_rel_path = match.group(2)
+            
+            # URLの場合はスキップ
+            if img_rel_path.startswith("http://") or img_rel_path.startswith("https://") or img_rel_path.startswith("data:"):
+                return match.group(0)
+            
+            # "assets/setup_flow.png" のような指定も考慮し、mdファイルからの相対パスとして解決
+            img_full_path = md_path.parent / img_rel_path.replace("assets/", "")
+            
+            if img_full_path.exists():
+                b64_data = get_base64_image(img_full_path)
+                if b64_data:
+                    ext = img_full_path.suffix.lower()
+                    mime = "image/png" if ext == ".png" else "image/jpeg" if ext in [".jpg", ".jpeg"] else "image/gif"
+                    return f"![{alt_text}](data:{mime};base64,{b64_data})"
+            return match.group(0)
+
+        md_content = re.sub(r'!\[(.*?)\]\((.*?)\)', replace_img_with_base64, md_content)
+
         # Display Markdown
-        st.markdown(md_content)
+        st.markdown(md_content, unsafe_allow_html=True)
     except Exception as e:
         st.error(f"マニュアル読み込みエラー: {e}")
 

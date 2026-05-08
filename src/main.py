@@ -4,7 +4,7 @@ from views import server_config, raid_config, update, log, reboot, server_info, 
 from pathlib import Path
 from utils.system_api import get_ip_address, write_syslog, execute_sudo_command
 
-VERSION="0.0.1"
+VERSION="0.1.00"
 _favicon = Image.open(Path(__file__).parent / "assets/favicon.ico")
 st.set_page_config(page_title="FXIJコンフィグツール", layout="wide", page_icon=_favicon)
 
