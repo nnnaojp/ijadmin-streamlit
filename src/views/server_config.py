@@ -17,16 +17,27 @@ def show():
 
     # Head Configuration
     st.subheader("ヘッド構成")
+    # options = [
+    #     "[0] 現在の構成",
+    #     "[1] FXIJ type 500 (W:RC1536,40mpm)",
+    #     "[2] FXIJ type 500 (W:RC1536x2,40mpm)",
+    #     "[3] FXIJ type 500 (W:SambaG5Lx2,40mpm)",
+    #     "[4] FXIJ type 1000 (W:RC1536,40mpm)",
+    #     "[5] FXIJ type 1000 (W:RC1536x2,40mpm)",
+    #     "[6] FXIJ type 1000 (W:SambaG5Lx2,30mpm)",
+    #     "[7] FXIJ type 1000 (W:SambaG5Lx2,50mpm)",
+    # ]
     options = [
-        "[0] 現在の構成",
-        "[1] FXIJ type 500 (W:RC1536,40mpm)",
-        "[2] FXIJ type 500 (W:RC1536x2,40mpm)",
-        "[3] FXIJ type 500 (W:SambaG5Lx2,40mpm)",
-        "[4] FXIJ type 1000 (W:RC1536,40mpm)",
-        "[5] FXIJ type 1000 (W:RC1536x2,40mpm)",
-        "[6] FXIJ type 1000 (W:SambaG5Lx2,30mpm)",
-        "[7] FXIJ type 1000 (W:SambaG5Lx2,50mpm)",
+        "ACTIVE (現在の構成)",
+        "FXIJ500-RC1536x1-40m/s",
+        "FXIJ500-RC1536x2-40m/s",
+        "FXIJ500-SambaG5Lx2-40m/s",
+        "FXIJ1000-RC1536x1-40m/s",
+        "FXIJ1000-RC1536x2-40m/s",
+        "FXIJ1000-SambaG5Lx2-30m/s",
+        "FXIJ1000-SambaG5Lx2-50m/s",
     ]
+
     head_config = st.selectbox("ヘッド構成", options, index=0)
     
     # Capture the selected index in a variable as requested

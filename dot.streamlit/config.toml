@@ -5,6 +5,7 @@ port = 7777
 address = "0.0.0.0"
 
 [browser]
+serverAddress = "localhost"
 gatherUsageStats = false
 
 [client]

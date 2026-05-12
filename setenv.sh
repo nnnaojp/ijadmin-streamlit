@@ -1,4 +1,2 @@
 #!/bin/bash
-
 export UV_PROJECT_ENVIRONMENT=$HOME/.venvs/ijadmin-ui.streamlit
-uv run streamlit run src/main.py
