@@ -13,11 +13,12 @@ Group=devp
 WorkingDirectory=/usr/mistral/ijconfig-ui
 
 # 環境変数（重要）
+Environment=UV_PROJECT_ENVIRONMENT=/home/ijadmin/.venv/ijconfig-ui
 Environment=STREAMLIT_CONFIG_DIR=/usr/mistral/ijconfig-ui/.streamlit
 Environment=PYTHONUNBUFFERED=1
 
 # 実行コマンド
-ExecStart=/usr/local/bin/streamlit run main.py
+ExecStart=/home/ijadmin/.local/bin/uv run streamlit run main.py
 
 # 再起動制御
 Restart=always
