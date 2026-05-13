@@ -268,6 +268,7 @@ def search_system_logs(query, password):
             command = ["sudo", "-S", "sh", "-c", shell_cmd]
 
     try:
+        print(f"command: {command}")
         result = subprocess.run(
             command,
             input=password + "\n",
