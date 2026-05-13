@@ -41,6 +41,7 @@ rm -rf /usr/mistral/ijconfig-ui
 # rm -rf /usr/mistral/ijconfig-ui/*
 info "[2/2] Installing files..."
 cp -rp "${DIST_DIR}" "${BASE_DIR}/${INSTALL_DIR}"
+rm "${BASE_DIR}/${INSTALL_DIR}"/main.pyc
 chown -R ${APP_USER}:${APP_GROUP} "${BASE_DIR}/${INSTALL_DIR}"
 info "      done → ${BASE_DIR}/${INSTALL_DIR}"
 
