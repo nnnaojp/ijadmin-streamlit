@@ -33,8 +33,6 @@ fi
 #     exit 1
 # fi
 
-# ============================================================
-
 # --- Step 1: インストールディレクトリのクリア & コピー ---
 info "[1/2] Clearing files..."
 rm -rf /usr/mistral/ijconfig-ui
@@ -44,6 +42,3 @@ cp -rp "${DIST_DIR}" "${BASE_DIR}/${INSTALL_DIR}"
 rm "${BASE_DIR}/${INSTALL_DIR}"/main.pyc
 chown -R ${APP_USER}:${APP_GROUP} "${BASE_DIR}/${INSTALL_DIR}"
 info "      done → ${BASE_DIR}/${INSTALL_DIR}"
-
-# ============================================================
-

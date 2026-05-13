@@ -11,6 +11,8 @@ APP_GROUP="devp"
 APP_NAME="ijconfig-ui"
 SRC_DIR="./src"
 DIST_DIR="./dist"
+UVSYNC_DIR="./uvsync"
+UVARCHIVE="ijadmin-ui-uv.tgz"
 
 # --- 色付きログ関数 ---
 info()    { echo -e "\e[32m[INFO]\e[0m  $*"; }
@@ -31,3 +33,15 @@ mkdir "$DIST_DIR"/.streamlit
 cp -rp dot.streamlit/* "$DIST_DIR"/.streamlit
 info "      done → ${DIST_DIR}"
 
+# --- Step 2: uv sync用アーカイブ作成
+info "[2/2] Archiving files..."
+rm -rf "${UVSYNC_DIR}"
+mkidr "${UVSYNC_DIR}"
+cp -a uv.lock "${UVSYNC_DIR}"
+cp -a pyproject.toml "${UVSYNC_DIR}"
+cp -a install.sh "${UVSYNC_DIR}"
+cp -a dist "${UVSYNC_DIR}"
+cp -a systemctl "${UVSYNC_DIR}"
+tar cvzf "${UVARCHIVE}" "${UVSYNC_DIR}" 
+
+info "      done → ${UVARCHIVE}"
